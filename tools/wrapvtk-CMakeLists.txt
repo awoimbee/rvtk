@@ -1,0 +1,42 @@
+cmake_minimum_required(VERSION 3.12)
+project(WrapVTK)
+
+# This is a small, patched copy of the top level CMakeLists.txt from
+# https://github.com/dgobbi/WrapVTK.  The only difference is that it honours the
+# `WRAPVTK_MODULES` cache variable so that only the modules we actually wrap are
+# processed.
+
+find_package(VTK REQUIRED COMPONENTS WrappingTools)
+add_subdirectory(Source)
+
+include(GNUInstallDirs)
+set(vtk_version_suffix)
+set(vtk_cmake_destination "${CMAKE_INSTALL_LIBDIR}/cmake/vtk${vtk_version_suffix}")
+include("CMake/vtkModuleWrapXML.cmake")
+
+set(_modules_to_wrap)
+if(DEFINED WRAPVTK_MODULES AND NOT WRAPVTK_MODULES STREQUAL "")
+  foreach(_module IN LISTS WRAPVTK_MODULES)
+    if(TARGET "VTK::${_module}")
+      list(APPEND _modules_to_wrap "VTK::${_module}")
+    else()
+      message(WARNING "Requested VTK module not found: ${_module}")
+    endif()
+  endforeach()
+else()
+  foreach(_module IN LISTS VTK_AVAILABLE_COMPONENTS)
+    if(TARGET "VTK::${_module}")
+      _vtk_module_get_module_property("VTK::${_module}"
+        PROPERTY "exclude_wrap" VARIABLE _vtk_module_exclude_wrap)
+      if(NOT _vtk_module_exclude_wrap)
+        list(APPEND _modules_to_wrap "VTK::${_module}")
+      endif()
+    endif()
+  endforeach()
+endif()
+
+vtk_module_wrap_xml(
+  MODULES ${_modules_to_wrap}
+  CMAKE_DESTINATION "${vtk_cmake_destination}"
+  INSTALL_HEADERS OFF
+)

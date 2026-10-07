@@ -1,0 +1,6 @@
+/target
+**/*.rs.bk
+.DS_Store
+# Build directories produced by vtk-gen (the committed output lives in the
+# crate source trees, these are just scratch/build dirs).
+/vtk-sys/shim/build

@@ -1,0 +1,20 @@
+[workspace]
+resolver = "2"
+members = [
+    "vtk-gen",
+    "vtk-sys",
+    "vtk",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "BSD-3-Clause"
+repository = "https://github.com/awoimbee/rvtk"
+authors = ["rvtk contributors"]
+
+[workspace.dependencies]
+vtk-sys = { path = "vtk-sys", version = "0.1.0" }
+
+[profile.dev]
+debug = 1
