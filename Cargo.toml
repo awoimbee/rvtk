@@ -1,9 +1,9 @@
 [workspace]
 resolver = "2"
 members = [
-    "vtk-gen",
-    "vtk-sys",
-    "vtk",
+    "rvtk-gen",
+    "rvtk-sys",
+    "rvtk",
 ]
 
 [workspace.package]
@@ -14,7 +14,9 @@ repository = "https://github.com/awoimbee/rvtk"
 authors = ["rvtk contributors"]
 
 [workspace.dependencies]
-vtk-sys = { path = "vtk-sys", version = "0.1.0" }
+# `rvtk-sys` is an implementation detail of `rvtk`; pin it exactly so the two
+# always travel together while the ABI is unstable.
+rvtk-sys = { path = "rvtk-sys", version = "=0.1.0" }
 
 [profile.dev]
 debug = 1

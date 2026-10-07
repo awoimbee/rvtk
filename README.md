@@ -39,30 +39,34 @@ println!("{} points", points.get_number_of_points());
 
 ## Workspace layout
 
-| Crate      | Purpose |
-| ---------- | ------- |
-| `vtk-sys`  | Raw `extern "C"` declarations (`vtk_sys::ffi`) and the CMake project that builds the C++ shim. |
-| `vtk`      | Safe wrappers: one `#[repr(transparent)]` newtype per class, reference counting, inheritance via `Deref`. |
-| `vtk-gen`  | The code generator.  Consumes WrapVTK XML, emits the C++ shim, the FFI crate and the wrapper crate. |
+| Crate | Lib name | Purpose |
+| ----- | -------- | ------- |
+| `rvtk` | `vtk` | Safe wrappers: one `#[repr(transparent)]` newtype per class, reference counting, inheritance via `Deref`. |
+| `rvtk-sys` | `rvtk_sys` | Raw `extern "C"` declarations (`rvtk_sys::ffi`) and the CMake project that builds the C++ shim. |
+| `rvtk-gen` | — | The code generator.  Consumes WrapVTK XML, emits the C++ shim, the FFI crate and the wrapper crate. |
+
+> The *package* is called `rvtk` (the crate name `vtk` is taken on crates.io), but
+the *library* is named `vtk`, so downstream code still reads
+`use vtk::vtkSphereSource;`.
 
 ```
 VTK headers
    │  vtkWrapXML  (WrapVTK)
    ▼
-per-class XML ──► vtk-gen ──┬─► vtk-sys/shim/**.cpp  ──► librvtk_shim
-                            ├─► vtk-sys/src/generated.rs
-                            └─► vtk/src/generated.rs
+per-class XML ──► rvtk-gen ──┬─► rvtk-sys/shim/**.cpp  ──► librvtk_shim
+                             ├─► rvtk-sys/src/generated.rs
+                             └─► rvtk/src/generated.rs
 ```
 
 ## Building
 
 ```sh
-cargo build -p vtk-sys -p vtk
-cargo test  -p vtk
-cargo run   -p vtk --example sphere_source
+cargo build -p rvtk-sys -p rvtk
+cargo test  -p rvtk
+cargo run   -p rvtk --example sphere_source
 ```
 
-`vtk-sys/build.rs` finds VTK, configures `vtk-sys/shim` with CMake and links the
+`rvtk-sys/build.rs` finds VTK, configures `rvtk-sys/shim` with CMake and links the
 resulting `librvtk_shim`.  The shim is a thin `extern "C"` layer: every function
 casts the opaque receiver back to its concrete type and performs the call, so
 the code the C++ compiler sees is essentially identical to hand written code.
@@ -143,10 +147,10 @@ MODULES="vtkCommonCore;vtkCommonDataModel;vtkFiltersSources;vtkRenderingCore" \
 ```
 
 The script builds [WrapVTK](https://github.com/dgobbi/WrapVTK)'s `vtkWrapXML`
-and invokes `vtk-gen`:
+and invokes `rvtk-gen`:
 
 ```sh
-cargo run -p vtk-gen -- \
+cargo run -p rvtk-gen -- \
   --xml-dir /path/to/WrapVTK/build/xml \
   --repo . \
   --modules vtkCommonCore,vtkCommonDataModel,vtkFiltersSources

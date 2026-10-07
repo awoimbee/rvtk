@@ -1,0 +1,18 @@
+[package]
+name = "rvtk"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Safe Rust bindings to the Visualization Toolkit (VTK)"
+
+[lib]
+# The package is `rvtk` (the crate name `vtk` is taken on crates.io), but the
+# library keeps its natural name so downstream code reads `use vtk::...`.
+name = "vtk"
+# The generated code carries VTK's doxygen comments, which contain C++ code
+# blocks rustdoc would otherwise try to run as doctests.
+doctest = false
+
+[dependencies]
+rvtk-sys.workspace = true

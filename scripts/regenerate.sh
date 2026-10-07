@@ -8,7 +8,7 @@
 #   1. locates an installed VTK (override with VTK_DIR),
 #   2. builds WrapVTK's `vtkWrapXML` tool,
 #   3. dumps an XML description of every wrapped module,
-#   4. runs `vtk-gen` to rewrite the C++ shim and the Rust crates.
+#   4. runs `rvtk-gen` to rewrite the C++ shim and the Rust crates.
 #
 # Set WRAPVTK_DIR to reuse an existing WrapVTK checkout, and MODULES to change
 # the list of wrapped VTK modules (semicolon separated).
@@ -22,7 +22,7 @@ WRAPVTK_DIR="${WRAPVTK_DIR:-$BUILD_DIR/WrapVTK}"
 # Never block on a git credential prompt.
 export GIT_TERMINAL_PROMPT=0
 
-# The VTK modules we generate bindings for.  Note that vtk-gen expects the
+# The VTK modules we generate bindings for.  Note that rvtk-gen expects the
 # module names VTK uses internally (no `vtk` prefix, semicolon separated).
 MODULES="${MODULES:-vtkCommonCore;vtkCommonDataModel;vtkCommonExecutionModel;vtkCommonMath;vtkCommonTransforms;vtkCommonColor;vtkCommonSystem;vtkCommonMisc;vtkFiltersCore;vtkFiltersSources;vtkFiltersGeneral;vtkFiltersGeometry;vtkIOGeometry;vtkIOCore;vtkIOLegacy;vtkIOPLY;vtkImagingHybrid}"
 
@@ -59,9 +59,9 @@ cmake -S "$WRAPVTK_DIR" -B "$WRAPVTK_DIR/build" \
 cmake --build "$WRAPVTK_DIR/build" --parallel
 
 # --- run the generator ------------------------------------------------------
-cargo run --release -p vtk-gen -- \
+cargo run --release -p rvtk-gen -- \
   --xml-dir "$WRAPVTK_DIR/build/xml" \
   --repo "$REPO_ROOT" \
   --modules "$(echo "$MODULES" | tr ';' ',')"
 
-echo "Done. Rebuild with: cargo build -p vtk-sys -p vtk"
+echo "Done. Rebuild with: cargo build -p rvtk-sys -p rvtk"
