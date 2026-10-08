@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -92,7 +92,7 @@ jobs:
       # Pinned to a commit SHA (zizmor's `unpinned-uses`) with the tag in a
       # comment so the intent survives; `persist-credentials: false` keeps the
       # checkout token out of the build (zizmor's `artipacked`).
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -121,7 +121,7 @@ jobs:
       # caching: the repository cache is capped at 10 GB, and the VTK trees are
       # the expensive part.
       - name: Cache cargo registry
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/.cargo/registry/index
@@ -134,7 +134,7 @@ jobs:
       # The expensive native part: the VTK build tree and, keyed on its content,
       # the compiled shim.  `build.rs` reuses both when the key matches.
       - name: Cache VTK and shim
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ env.RVTK_CACHE_DIR }}
           key: rvtk-vtk-${{ runner.os }}-${{ hashFiles('rvtk-sys/build.rs', 'rvtk-sys/shim/**') }}
