@@ -1,0 +1,44 @@
+# Dependabot configuration.
+#
+# Two ecosystems:
+#   * `cargo`          -- the workspace dependencies (rvtk-gen's anyhow/clap/
+#                         convert_case/roxmltree, and rvtk-sys's cmake
+#                         build-dependency).  Small on purpose: `rvtk` itself
+#                         only depends on `rvtk-sys` by path.
+#   * `github-actions` -- the actions used by `.github/workflows/`, which are
+#                         pinned to commit SHAs (zizmor's `unpinned-uses`).
+#                         Dependabot bumps the SHA and keeps the trailing
+#                         `# vX.Y.Z` comment in step, so pinning stays
+#                         maintainable.
+#
+# Updates are grouped so a quiet week produces one PR per ecosystem instead of
+# one per dependency.  VTK itself is not tracked here: it is pinned by version
+# and SHA-256 in `rvtk-sys/build.rs` and bumped deliberately, because the
+# committed bindings are generated from that exact release.
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: "/"
+    schedule:
+      interval: weekly
+    # Wait a week before adopting a release, so a compromised or immediately
+    # yanked version has time to be noticed (zizmor's `dependabot-cooldown`).
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    groups:
+      cargo:
+        patterns: ["*"]
+        # Only batch version bumps; a major bump gets its own PR to review.
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    groups:
+      actions:
+        patterns: ["*"]

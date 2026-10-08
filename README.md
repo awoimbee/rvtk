@@ -242,6 +242,17 @@ formats from the crate roots rather than passing filenames — rustfmt follows
 `include!`, so a workspace-wide `cargo fmt` leaves all ~470k generated lines
 alone.
 
+### Dependency updates
+
+Dependabot (`.github/dependabot.yml`) opens a weekly PR for the Cargo
+dependencies and for the GitHub Actions.  Both are grouped, so a quiet week is
+one PR per ecosystem, and both wait a week before adopting a release.  The
+actions are pinned to commit SHAs, and Dependabot keeps those in step.
+
+VTK is not tracked: it is pinned by version and SHA-256 in `rvtk-sys/build.rs`
+and bumped deliberately, because the committed bindings are generated from that
+exact release.
+
 ## Design
 
 ### Reference counting
