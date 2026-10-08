@@ -30,10 +30,10 @@ println!("{} points", points.get_number_of_points());
 ## Requirements
 
 * A C++ compiler and CMake (`cmake` ≥ 3.12).
-* Network access the first time (to download the VTK source release), or a
+* Network access the first time (to download the pinned VTK source release), or a
   VTK source tree pointed at by `RVTK_VTK_SOURCE_DIR`.
-* No installed VTK is used: `rvtk-sys` builds VTK from source and links it
-  statically (see [Building](#building)).
+* No installed VTK is used: `rvtk-sys` builds the pinned VTK release from source
+  and links it statically (see [Building](#building)).
 
 ## Workspace layout
 
@@ -41,7 +41,7 @@ println!("{} points", points.get_number_of_points());
 | ----- | -------- | ------- |
 | `rvtk` | `vtk` | Safe wrappers: one `#[repr(transparent)]` newtype per class, reference counting, inheritance via `Deref`. |
 | `rvtk-sys` | `rvtk_sys` | Raw `extern "C"` declarations (`rvtk_sys::ffi`) and the CMake project that builds the C++ shim. |
-| `rvtk-gen` | — | The code generator.  Consumes WrapVTK XML, emits the C++ shim, the FFI crate and the wrapper crate. |
+| `rvtk-gen` | — | The code generator.  Clones/builds WrapVTK, generates the XML API description, and emits the C++ shim, the FFI crate and the wrapper crate. |
 
 > The *package* is called `rvtk` (the crate name `vtk` is taken on crates.io), but
 the *library* is named `vtk`, so downstream code still reads
@@ -148,6 +148,30 @@ codegen parallelise.  The `RVTK_SKIP` crash-hunting hook is unaffected.
 | `RVTK_VTK_URL` | Download from this URL instead of the pinned release. |
 | `DOCS_RS` | Set by docs.rs; skips the native build entirely. |
 
+### Platform support and CI
+
+`.github/workflows/ci.yml` builds the whole workspace (native VTK + shim + Rust)
+and runs the fast tests on Linux, macOS and Windows for every pull request.
+
+The committed bindings were generated from a **macOS** VTK, so today only the
+macOS job can pass:
+
+* they wrap classes that only exist there (the generated shim `#include`s
+  `vtkCocoaRenderWindow.h`, `vtkCocoaHardwareWindow.h` and
+  `vtkCocoaRenderWindowInteractor.h`, which no other platform installs);
+* the generated C++ spells 64-bit ids `int64_t`, which is the same type as
+  `vtkIdType` on macOS (`long long`) but not on Linux/Windows (`long` vs
+  `long long`), so a handful of array parameters fail to compile;
+* on Windows the default Visual Studio generator writes no `link.txt`, which
+  `build.rs` reads to reconstruct the link line.
+
+Because of that the Linux and Windows jobs are marked `continue-on-error`:
+they run the same steps and report their status without blocking a PR.  Making
+them blocking means generating the bindings per platform — a per-platform
+module list (to drop the Cocoa classes) and a type-faithful mapping between
+`vtkIdType`/`vtkTypeInt64` and the C ABI — which is the next step if
+cross-platform support is wanted.
+
 ## Design
 
 ### Reference counting
@@ -214,29 +238,59 @@ skipped for that method; the generator reports how many methods it skipped.
 ## Regenerating the bindings
 
 The generated sources are committed so that users do not need the wrapping tools.
-To regenerate them against a different VTK version or module set:
+`rvtk-gen` owns the whole pipeline: it clones (or reuses) [WrapVTK], builds its
+`vtkWrapXML` tool against VTK, generates the XML API description, and writes the
+C++ shim and the Rust crates.
 
 ```sh
 ./scripts/regenerate.sh
-# or pick modules explicitly:
-MODULES="vtkCommonCore;vtkCommonDataModel;vtkFiltersSources;vtkRenderingCore" \
-  ./scripts/regenerate.sh
+# or pick modules explicitly (comma separated, VTK spelling):
+MODULES=vtkCommonCore,vtkFiltersSources,vtkRenderingCore ./scripts/regenerate.sh
 ```
 
-The script builds [WrapVTK](https://github.com/dgobbi/WrapVTK)'s `vtkWrapXML`
-and invokes `rvtk-gen`:
+Equivalently, without the wrapper script:
 
 ```sh
-cargo run -p rvtk-gen -- \
-  --xml-dir /path/to/WrapVTK/build/xml \
-  --repo . \
-  --modules vtkCommonCore,vtkCommonDataModel,vtkFiltersSources
+cargo run -p rvtk-gen -- --repo .
 ```
+
+### It uses the pinned VTK, not the system one
+
+The bindings are generated from a *pinned* VTK release: the same 9.7.1 that
+`rvtk-sys` downloads and builds (`VTK_VERSION` in `rvtk-sys/build.rs`).  On a
+cold cache, build that once first:
+
+```sh
+cargo build -p rvtk-sys     # downloads and builds the pinned VTK
+```
+
+`rvtk-gen` then finds it under `target/rvtk-vtk/vtk-<version>/build` (or
+`$RVTK_CACHE_DIR`), so regeneration does not depend on any VTK being installed.
+The lookup order is `--vtk-dir`, `VTK_DIR`, the pinned build, then a system
+install.  A VTK without the `WrappingTools` component cannot be used; the pinned
+build always has it.
+
+### The module set comes from the features
+
+The modules to wrap default to the `vtk*` Cargo features declared in
+`rvtk-sys/Cargo.toml`, so the generated XML, the bindings and the features
+cannot drift apart.  `--modules` (or `MODULES=...`) overrides that; passing
+nothing when the manifest has no `vtk*` features wraps everything VTK exposes.
+
+| `rvtk-gen` option | Purpose |
+| ----------------- | ------- |
+| `--xml-dir` | Use pre-generated XML and skip WrapVTK entirely. |
+| `--vtk-dir` | VTK CMake package dir to build `vtkWrapXML` against. |
+| `--vtk-include` | VTK include dir, to detect wrapper-only array shims. |
+| `--wrapvtk-dir` | WrapVTK checkout to use or create (default `target/wrapvtk`). |
+| `--wrapvtk-url` | Git URL to clone WrapVTK from. |
+| `--modules` | Modules to wrap (default: the `rvtk-sys` features). |
+| `--jobs` | Passed to `cmake --build --parallel` for WrapVTK. |
+
+[WrapVTK]: https://github.com/dgobbi/WrapVTK
 
 ## Limitations / roadmap
 
-* Only a subset of VTK modules is wrapped by default; add more with
-  `MODULES=... ./scripts/regenerate.sh`.
 * Value types (`vtkVector`, `vtkIndent`, `vtkVariant`, …) and `std::string`
   behind a pointer are not yet supported.
 * Templated classes are skipped; `vtkSmartPointer<T>` signatures are supported

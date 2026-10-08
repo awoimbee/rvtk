@@ -1,70 +1,41 @@
 #!/usr/bin/env bash
 #
-# Regenerate the Rust and C++ bindings from the VTK headers.
+# Regenerate the committed Rust and C++ bindings from VTK's headers.
 #
 #   ./scripts/regenerate.sh
 #
-# The script:
-#   1. locates an installed VTK (override with VTK_DIR),
-#   2. builds WrapVTK's `vtkWrapXML` tool,
-#   3. dumps an XML description of every wrapped module,
-#   4. runs `rvtk-gen` to rewrite the C++ shim and the Rust crates.
+# `rvtk-gen` does the actual work: it clones (or reuses) WrapVTK, builds
+# `vtkWrapXML` against your VTK, generates the XML API description, and then
+# writes the C++ shim and the Rust crates.  This script is only a convenience
+# wrapper that builds `rvtk-gen` and forwards its environment.
 #
-# Set WRAPVTK_DIR to reuse an existing WrapVTK checkout, and MODULES to change
-# the list of wrapped VTK modules (semicolon separated).
+# By default the module set comes from the `vtk*` features in
+# `rvtk-sys/Cargo.toml`, so the bindings and the features cannot drift apart.
+# Override with MODULES (comma separated, VTK spelling):
+#
+#   MODULES=vtkCommonCore,vtkFiltersSources ./scripts/regenerate.sh
+#
+# Recognised environment variables (all optional):
+#   VTK_DIR        VTK CMake package dir; auto-detected (Homebrew, /usr/local,
+#                  /usr) when unset.
+#   VTK_INCLUDE    VTK include dir; derived from VTK_DIR when unset.
+#   WRAPVTK_DIR    WrapVTK checkout to use or create (default:
+#                  target/wrapvtk/WrapVTK).
+#   MODULES        Modules to wrap (default: the rvtk-sys features).
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BUILD_DIR="${BUILD_DIR:-$REPO_ROOT/target/wrapvtk}"
-WRAPVTK_DIR="${WRAPVTK_DIR:-$BUILD_DIR/WrapVTK}"
+cd "$REPO_ROOT"
 
-# Never block on a git credential prompt.
-export GIT_TERMINAL_PROMPT=0
+args=(--repo "$REPO_ROOT")
+[[ -n "${MODULES:-}" ]] && args+=(--modules "$MODULES")
+[[ -n "${VTK_DIR:-}" ]] && args+=(--vtk-dir "$VTK_DIR")
+[[ -n "${VTK_INCLUDE:-}" ]] && args+=(--vtk-include "$VTK_INCLUDE")
+[[ -n "${WRAPVTK_DIR:-}" ]] && args+=(--wrapvtk-dir "$WRAPVTK_DIR")
+[[ -n "${WRAPVTK_URL:-}" ]] && args+=(--wrapvtk-url "$WRAPVTK_URL")
 
-# The VTK modules we generate bindings for.  Note that rvtk-gen expects the
-# module names VTK uses internally (no `vtk` prefix, semicolon separated).
-MODULES="${MODULES:-vtkCommonCore;vtkCommonDataModel;vtkCommonExecutionModel;vtkCommonMath;vtkCommonTransforms;vtkCommonColor;vtkCommonSystem;vtkCommonMisc;vtkFiltersCore;vtkFiltersSources;vtkFiltersGeneral;vtkFiltersGeometry;vtkIOGeometry;vtkIOCore;vtkIOLegacy;vtkIOPLY;vtkImagingHybrid;vtkImagingCore;vtkIOImage;vtkInteractionStyle;vtkInteractionWidgets;vtkRenderingCore;vtkRenderingOpenGL2;vtkRenderingFreeType;vtkRenderingFreeTypeFontConfig;vtkRenderingAnnotation;vtkRenderingVolume;vtkRenderingVolumeOpenGL2;vtkRenderingContext2D;vtkRenderingContextOpenGL2;vtkRenderingUI;vtkRenderingLabel;vtkRenderingLOD;vtkRenderingImage;vtkRenderingHyperTreeGrid;vtkRenderingCellGrid;vtkRenderingGridAxes}"
+cargo run --release -p rvtk-gen -- "${args[@]}"
 
-# WrapVTK expects the CMake component names, i.e. without the `vtk` prefix.
-WRAP_MODULES="$(echo "$MODULES" | sed 's/vtk\([A-Za-z0-9]*\)/\1/g')"
-
-# --- locate VTK -------------------------------------------------------------
-if [[ -z "${VTK_DIR:-}" ]]; then
-  if command -v brew >/dev/null 2>&1 && brew --prefix vtk >/dev/null 2>&1; then
-    VTK_PREFIX="$(brew --prefix vtk)"
-  else
-    VTK_PREFIX="/usr"
-  fi
-  VTK_DIR="$(ls -d "$VTK_PREFIX"/lib/cmake/vtk-* 2>/dev/null | sort -V | tail -1)"
-fi
-if [[ -z "${VTK_DIR:-}" || ! -d "$VTK_DIR" ]]; then
-  echo "error: could not find VTK; set VTK_DIR to the directory containing vtk-config.cmake" >&2
-  exit 1
-fi
-echo "Using VTK_DIR=$VTK_DIR"
-
-# --- fetch WrapVTK ----------------------------------------------------------
-if [[ ! -d "$WRAPVTK_DIR" ]]; then
-  mkdir -p "$(dirname "$WRAPVTK_DIR")"
-  git clone --depth 1 https://github.com/dgobbi/WrapVTK.git "$WRAPVTK_DIR"
-fi
-cp "$REPO_ROOT/tools/wrapvtk-CMakeLists.txt" "$WRAPVTK_DIR/CMakeLists.txt"
-
-# --- build vtkWrapXML and generate the XML ---------------------------------
-cmake -S "$WRAPVTK_DIR" -B "$WRAPVTK_DIR/build" \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DVTK_DIR="$VTK_DIR" \
-  -DWRAPVTK_MODULES="$WRAP_MODULES"
-cmake --build "$WRAPVTK_DIR/build" --parallel
-
-VTK_INCLUDE="${VTK_INCLUDE:-$(dirname "$(dirname "$VTK_DIR")")/include/vtk-$(basename "$VTK_DIR" | sed 's/^vtk-//')"}"
-
-# --- run the generator ------------------------------------------------------
-cargo run --release -p rvtk-gen -- \
-  --xml-dir "$WRAPVTK_DIR/build/xml" \
-  --repo "$REPO_ROOT" \
-  --vtk-include "$VTK_INCLUDE" \
-  --modules "$(echo "$MODULES" | tr ';' ',')"
-
+echo
 echo "Done. Rebuild with: cargo build -p rvtk-sys -p rvtk"

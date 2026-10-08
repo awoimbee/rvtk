@@ -1,0 +1,113 @@
+# Continuous integration: build the whole workspace (native VTK + shim + Rust)
+# on Linux, macOS and Windows, and run the fast tests.
+#
+# ── Current status ──────────────────────────────────────────────────────────
+# The generated bindings that are committed were produced from a *macOS* VTK, so
+# they wrap classes that only exist there (`vtkCocoaRenderWindow`, ...) and use
+# C++ types that are spelled differently on other platforms
+# (`int64_t` vs `vtkIdType` on Linux/Windows).  Only the macOS job can pass
+# today; the Linux and Windows jobs run the exact same steps but are marked
+# `continue-on-error` so they report status without blocking PRs.  Drop the
+# `blocking: false` entries once the bindings are made platform-independent
+# (`rvtk-gen` needs a per-platform module list / type mapping, see the README).
+#
+# Building VTK from source dominates the runtime (~8 minutes on a fast machine,
+# more on a hosted runner).  The `RVTK_CACHE_DIR` cache keeps the built VTK and
+# shim between runs, so only the first run on each OS pays for it.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# A new push to the same PR cancels the run that is still going.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  # Keep the (large) VTK + shim build tree outside `target/` so the Rust and
+  # native caches are independent.
+  RVTK_CACHE_DIR: ${{ github.workspace }}/.rvtk-cache
+
+jobs:
+  build:
+    name: build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    # The VTK build plus the shim plus the Rust crates; generous but bounded.
+    timeout-minutes: 120
+    continue-on-error: ${{ !matrix.blocking }}
+    strategy:
+      # Report every platform, do not stop at the first failure.
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            blocking: true
+          - os: ubuntu-latest
+            blocking: false
+          - os: windows-latest
+            blocking: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cmake build-essential \
+            libgl1-mesa-dev libglu1-mesa-dev \
+            libx11-dev libxext-dev libxt-dev libxrender-dev \
+            libxi-dev libxrandr-dev libxcursor-dev
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Show toolchain versions
+        run: |
+          rustc --version
+          cargo --version
+          cmake --version
+          c++ --version || true
+
+      # Crate downloads only.  Recompiling the Rust crates from scratch costs
+      # well under a minute once VTK is cached, so `target/` is not worth
+      # caching: the repository cache is capped at 10 GB, and the VTK trees are
+      # the expensive part.
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: cargo-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-
+
+      # The expensive native part: the VTK build tree and, keyed on its content,
+      # the compiled shim.  `build.rs` reuses both when the key matches.
+      - name: Cache VTK and shim
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.RVTK_CACHE_DIR }}
+          key: rvtk-vtk-${{ runner.os }}-${{ hashFiles('rvtk-sys/build.rs', 'rvtk-sys/shim/**') }}
+          restore-keys: |
+            rvtk-vtk-${{ runner.os }}-
+
+      # Builds: rvtk-gen, rvtk-sys (downloads + builds VTK, builds the shim),
+      # rvtk, and all test targets.
+      - name: Build workspace and tests
+        run: cargo build --workspace --tests --locked
+
+      # Cheap functional checks that do not need a window server.  The full
+      # `smoke` sweep deliberately is not run here: it is a crash hunt that
+      # walks into a known VTK segfault (see `scripts/crash-hunt.sh`).
+      - name: Run fast tests
+        run: |
+          cargo test -p rvtk-gen --locked
+          cargo test -p rvtk --test pipeline --locked

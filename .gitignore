@@ -10,3 +10,7 @@
 /.deps/
 # Output directory of the rendering test (it writes PNGs under rvtk/target).
 /rvtk/target/
+
+# VTK + shim build cache when RVTK_CACHE_DIR points inside the checkout, as the
+# CI workflow does.
+/.rvtk-cache/

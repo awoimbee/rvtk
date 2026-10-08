@@ -135,27 +135,51 @@ pub fn emit_class_cpp(class: &Class, headers: &BTreeMap<String, String>) -> Stri
     out
 }
 
-pub fn emit_cmake(api: &Api, generated: &[(String, Vec<String>)]) -> String {
+pub fn emit_cmake(api: &Api, _generated: &[(String, Vec<String>)]) -> String {
     let mut out = String::new();
     let _ = writeln!(out, "cmake_minimum_required(VERSION 3.12)");
     let _ = writeln!(out, "project(rvtk_shim LANGUAGES CXX)");
     let _ = writeln!(out, "set(CMAKE_CXX_STANDARD 14)");
     let _ = writeln!(out, "set(CMAKE_CXX_STANDARD_REQUIRED ON)");
     let _ = writeln!(out, "set(CMAKE_POSITION_INDEPENDENT_CODE ON)\n");
-    let _ = writeln!(out, "find_package(VTK REQUIRED COMPONENTS");
+    // Every wrapped module, so that `rvtk-sys/build.rs` can map the enabled
+    // Cargo features onto modules without duplicating the list by hand.
+    let _ = writeln!(out, "set(RVTK_ALL_MODULES");
     for m in &api.modules {
         let _ = writeln!(out, "  {m}");
     }
     let _ = writeln!(out, ")\n");
+    // Which modules to build is decided by the enabled Cargo features and handed
+    // in by `build.rs`; a standalone CMake build defaults to all of them.
+    let _ = writeln!(
+        out,
+        "if(NOT DEFINED RVTK_MODULES)\n  set(RVTK_MODULES ${{RVTK_ALL_MODULES}})\nendif()\n"
+    );
+    let _ = writeln!(
+        out,
+        "find_package(VTK REQUIRED COMPONENTS ${{RVTK_MODULES}})\n"
+    );
     // VTK is linked statically (see `rvtk-sys/build.rs`), so the shim is a
     // static archive too: rustc links it, and everything it needs, into the
-    // final binary.
-    let _ = writeln!(out, "add_library(rvtk_shim STATIC");
-    let _ = writeln!(out, "  support/rvtk_shim.cpp");
-    for (_class, _) in generated {
-        let _ = writeln!(out, "  src/{_class}.cpp");
+    // final binary.  Only the enabled modules contribute translation units.
+    let mut by_module: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+    for class in api.classes.values() {
+        by_module
+            .entry(class.module.as_str())
+            .or_default()
+            .push(class.name.as_str());
     }
-    let _ = writeln!(out, ")\n");
+    let _ = writeln!(out, "set(rvtk_shim_sources\n  support/rvtk_shim.cpp)");
+    for (module, classes) in &by_module {
+        let _ = writeln!(out, "if(\"{module}\" IN_LIST RVTK_MODULES)");
+        let _ = writeln!(out, "  list(APPEND rvtk_shim_sources");
+        for class in classes {
+            let _ = writeln!(out, "    src/{class}.cpp");
+        }
+        let _ = writeln!(out, "  )");
+        let _ = writeln!(out, "endif()");
+    }
+    let _ = writeln!(out, "add_library(rvtk_shim STATIC ${{rvtk_shim_sources}})\n");
     let _ = writeln!(
         out,
         "target_include_directories(rvtk_shim PRIVATE \"${{CMAKE_CURRENT_SOURCE_DIR}}/support\")"

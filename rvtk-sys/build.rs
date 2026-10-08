@@ -57,16 +57,16 @@ fn main() -> Result<()> {
     let cache = cache_root(&out_dir).join(format!("vtk-{VTK_VERSION}"));
 
     // Prefer an explicit prebuilt install tree; otherwise build VTK from source.
+    let modules = enabled_modules()?;
     let vtk = match prebuilt_vtk()? {
         Some(vtk) => vtk,
         None => {
-            let modules = shim_modules()?;
             let source = vtk_source(&cache)?;
             build_vtk(&source, &cache, &modules)?
         }
     };
     let manifest = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").expect("cargo sets it"));
-    let shim = build_shim(&cache, &vtk, &manifest)?;
+    let shim = build_shim(&cache, &vtk, &manifest, &modules)?;
     link(&shim)
 }
 
@@ -364,29 +364,56 @@ fn vtk_cmake_dir(prefix: &Path) -> Result<PathBuf> {
 // shim build
 // ---------------------------------------------------------------------------
 
-/// The VTK components the generated shim asks for.  Read from the shim's
-/// `CMakeLists.txt` so the two cannot drift apart.
-fn shim_modules() -> Result<Vec<String>> {
+/// The VTK modules to build, from the enabled Cargo features.
+///
+/// Every wrapped module is a Cargo feature named after it (`vtkFiltersCore`),
+/// so a default build compiles a handful of modules instead of all of VTK.
+fn enabled_modules() -> Result<Vec<String>> {
+    let all = all_wrapped_modules()?;
+    let enabled: Vec<String> = all
+        .iter()
+        .filter(|module| feature_enabled(module))
+        .cloned()
+        .collect();
+    if enabled.is_empty() {
+        return Err(format!(
+            "no VTK modules enabled: turn on at least one of the `vtk*` Cargo \
+             features ({} are available)",
+            all.len()
+        )
+        .into());
+    }
+    Ok(enabled)
+}
+
+/// Whether the Cargo feature named after `module` is enabled.  Cargo exposes
+/// every activated feature as `CARGO_FEATURE_<NAME>`, upper-cased.
+fn feature_enabled(module: &str) -> bool {
+    let variable = format!("CARGO_FEATURE_{}", module.to_uppercase().replace('-', "_"));
+    env::var_os(variable).is_some()
+}
+
+/// Every wrapped VTK module, as generated into the shim's `CMakeLists.txt`
+/// (`set(RVTK_ALL_MODULES ...)`).  Reading it there keeps this list and the
+/// generated sources from drifting apart.
+fn all_wrapped_modules() -> Result<Vec<String>> {
     let manifest = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").expect("cargo sets it"));
     let cmake = fs::read_to_string(manifest.join("shim/CMakeLists.txt"))?;
-    let mut modules = Vec::new();
-    let mut inside = false;
-    for line in cmake.lines() {
-        if line.contains("find_package(VTK") {
-            inside = true;
-        }
-        if inside {
-            let module = line.trim().trim_end_matches(')').trim();
-            if is_module_name(module) && !modules.iter().any(|known| known == module) {
-                modules.push(module.to_owned());
-            }
-            if line.trim_end().ends_with(')') {
-                inside = false;
-            }
-        }
-    }
+    let after = cmake
+        .split_once("set(RVTK_ALL_MODULES")
+        .map(|(_, rest)| rest)
+        .ok_or("shim/CMakeLists.txt has no `set(RVTK_ALL_MODULES ...)` block")?;
+    let list = after
+        .split_once(')')
+        .map(|(list, _)| list)
+        .ok_or("unterminated `set(RVTK_ALL_MODULES ...)` block")?;
+    let modules: Vec<String> = list
+        .split_whitespace()
+        .filter(|word| is_module_name(word))
+        .map(str::to_owned)
+        .collect();
     if modules.is_empty() {
-        return Err("no VTK components found in shim/CMakeLists.txt".into());
+        return Err("no VTK modules found in shim/CMakeLists.txt".into());
     }
     Ok(modules)
 }
@@ -408,13 +435,15 @@ fn is_module_name(word: &str) -> bool {
 /// translation units from scratch.  A stable directory next to the VTK cache
 /// lets CMake's own incremental build do the work: re-running the script with
 /// unchanged sources is a quick no-op instead of a multi-minute rebuild.
-fn build_shim(cache: &Path, vtk: &Vtk, manifest: &Path) -> Result<PathBuf> {
+fn build_shim(cache: &Path, vtk: &Vtk, manifest: &Path, modules: &[String]) -> Result<PathBuf> {
     let out = cache.join("shim");
     // The configuration fingerprint decides whether an existing build tree can
-    // be reused at all; the content hash decides whether it is up to date.
+    // be reused at all; the content hash decides whether it is up to date.  The
+    // enabled modules are part of it, so switching features rebuilds the shim.
     let config = format!(
-        "{VTK_VERSION}\n{}\n{}\n{}\n",
+        "{VTK_VERSION}\n{}\n{}\n{}\n{}\n",
         vtk.fingerprint,
+        modules.join(","),
         env::var("TARGET").unwrap_or_default(),
         env::var("CMAKE_GENERATOR").unwrap_or_default(),
     );
@@ -440,6 +469,7 @@ fn build_shim(cache: &Path, vtk: &Vtk, manifest: &Path) -> Result<PathBuf> {
     let mut cmake = cmake::Config::new(manifest.join("shim"));
     cmake.out_dir(&out);
     cmake.define("CMAKE_BUILD_TYPE", "Release");
+    cmake.define("RVTK_MODULES", modules.join(";"));
     cmake.define("VTK_DIR", vtk_cmake_dir(&vtk.prefix)?);
     cmake.define("CMAKE_PREFIX_PATH", &vtk.prefix);
     cmake.build();
@@ -509,7 +539,10 @@ fn link(shim: &Path) -> Result<()> {
         format!(
             "reading {}: {error}\n\
              `rvtk-sys/shim/CMakeLists.txt` must build an executable called\n\
-             `rvtk_link_probe` for the link line to be available.",
+             `rvtk_link_probe`, and its link line is read from CMake's\n\
+             `link.txt`, which only the Makefile generators produce.  Set\n\
+             `CMAKE_GENERATOR` to `Unix Makefiles`, `MinGW Makefiles` or\n\
+             `NMake Makefiles` (Ninja and Visual Studio do not write one).",
             link_txt.display()
         )
     })?;
@@ -529,11 +562,16 @@ fn link(shim: &Path) -> Result<()> {
     }
 
     // The link line above goes through a C++ driver, which adds the C++ runtime
-    // implicitly; rustc links with `cc`, so ask for it explicitly.
+    // implicitly; rustc links with `cc`, so ask for it explicitly.  MSVC needs
+    // nothing here: its object files carry `#pragma comment(lib, ...)`
+    // directives that the linker honours on its own.
     let target = env::var("TARGET").unwrap_or_default();
     if target.contains("apple") {
         println!("cargo:rustc-link-lib=dylib=c++");
-    } else if target.contains("linux") || target.contains("freebsd") {
+    } else if target.contains("linux")
+        || target.contains("freebsd")
+        || target.contains("windows-gnu")
+    {
         println!("cargo:rustc-link-lib=dylib=stdc++");
     }
     Ok(())

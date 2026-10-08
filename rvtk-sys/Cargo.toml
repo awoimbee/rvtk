@@ -15,3 +15,46 @@ doctest = false
 
 [build-dependencies]
 cmake = "0.1"
+
+# One feature per wrapped VTK module.  VTK is built from source, so the enabled
+# features decide which VTK libraries are compiled *and* which generated bindings
+# exist: the default set is deliberately small (CommonCore, CommonDataModel and
+# FiltersCore, plus the modules they depend on).  Turn on more with, for example,
+# `--features vtkFiltersSources,vtkRenderingCore`.
+[features]
+default = ["vtkCommonCore", "vtkCommonDataModel", "vtkFiltersCore"]
+vtkCommonColor = ["vtkCommonCore", "vtkCommonDataModel"]
+vtkCommonCore = []
+vtkCommonDataModel = ["vtkCommonCore", "vtkCommonMath", "vtkCommonMisc", "vtkCommonSystem", "vtkCommonTransforms"]
+vtkCommonExecutionModel = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonMisc", "vtkCommonSystem"]
+vtkCommonMath = ["vtkCommonCore"]
+vtkCommonMisc = ["vtkCommonCore", "vtkCommonMath"]
+vtkCommonSystem = ["vtkCommonCore"]
+vtkCommonTransforms = ["vtkCommonCore", "vtkCommonMath"]
+vtkFiltersCore = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkCommonMath", "vtkCommonMisc", "vtkCommonSystem", "vtkCommonTransforms"]
+vtkFiltersGeneral = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkCommonMath", "vtkCommonMisc", "vtkCommonSystem", "vtkCommonTransforms", "vtkFiltersCore", "vtkFiltersGeometry"]
+vtkFiltersGeometry = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkFiltersCore"]
+vtkFiltersSources = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkCommonTransforms", "vtkFiltersCore", "vtkFiltersGeneral"]
+vtkIOCore = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkCommonMisc"]
+vtkIOGeometry = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkCommonMisc", "vtkCommonSystem", "vtkCommonTransforms", "vtkFiltersGeneral", "vtkIOCore", "vtkIOImage", "vtkIOLegacy", "vtkImagingCore", "vtkRenderingCore"]
+vtkIOImage = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkCommonMath", "vtkCommonMisc", "vtkCommonSystem", "vtkCommonTransforms", "vtkIOCore", "vtkImagingCore"]
+vtkIOLegacy = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkCommonMisc", "vtkIOCore"]
+vtkIOPLY = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonMisc", "vtkIOCore"]
+vtkImagingCore = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkCommonMath", "vtkCommonTransforms"]
+vtkImagingHybrid = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkIOImage", "vtkImagingCore"]
+vtkInteractionStyle = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonMath", "vtkCommonSystem", "vtkCommonTransforms", "vtkFiltersCore", "vtkFiltersSources", "vtkRenderingCore"]
+vtkInteractionWidgets = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkCommonMath", "vtkCommonSystem", "vtkCommonTransforms", "vtkFiltersCore", "vtkFiltersGeneral", "vtkFiltersSources", "vtkImagingCore", "vtkImagingHybrid", "vtkInteractionStyle", "vtkRenderingAnnotation", "vtkRenderingContext2D", "vtkRenderingCore", "vtkRenderingFreeType", "vtkRenderingVolume"]
+vtkRenderingAnnotation = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkCommonMath", "vtkCommonTransforms", "vtkFiltersCore", "vtkFiltersGeneral", "vtkFiltersSources", "vtkRenderingCore", "vtkRenderingFreeType"]
+vtkRenderingCellGrid = ["vtkCommonColor", "vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkRenderingCore", "vtkRenderingOpenGL2"]
+vtkRenderingContext2D = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkCommonMath", "vtkCommonSystem", "vtkCommonTransforms", "vtkFiltersGeneral", "vtkRenderingCore", "vtkRenderingFreeType"]
+vtkRenderingContextOpenGL2 = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonMath", "vtkCommonTransforms", "vtkImagingCore", "vtkRenderingContext2D", "vtkRenderingCore", "vtkRenderingFreeType", "vtkRenderingOpenGL2"]
+vtkRenderingCore = ["vtkCommonColor", "vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkCommonMath", "vtkCommonSystem", "vtkCommonTransforms", "vtkFiltersCore", "vtkFiltersGeneral", "vtkFiltersGeometry", "vtkFiltersSources"]
+vtkRenderingFreeType = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkFiltersGeneral", "vtkRenderingCore"]
+vtkRenderingHyperTreeGrid = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkCommonMath", "vtkRenderingCore"]
+vtkRenderingImage = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkCommonMath", "vtkCommonTransforms", "vtkImagingCore", "vtkRenderingCore"]
+vtkRenderingLOD = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkCommonMath", "vtkCommonSystem", "vtkFiltersCore", "vtkRenderingCore"]
+vtkRenderingLabel = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkCommonMath", "vtkCommonSystem", "vtkCommonTransforms", "vtkFiltersGeneral", "vtkImagingCore", "vtkRenderingCore", "vtkRenderingFreeType"]
+vtkRenderingOpenGL2 = ["vtkCommonColor", "vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkCommonMath", "vtkCommonSystem", "vtkCommonTransforms", "vtkFiltersGeneral", "vtkIOCore", "vtkIOImage", "vtkImagingCore", "vtkRenderingCore", "vtkRenderingFreeType", "vtkRenderingHyperTreeGrid", "vtkRenderingLabel", "vtkRenderingUI"]
+vtkRenderingUI = ["vtkRenderingCore"]
+vtkRenderingVolume = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkCommonMath", "vtkCommonMisc", "vtkCommonSystem", "vtkCommonTransforms", "vtkImagingCore", "vtkRenderingCore"]
+vtkRenderingVolumeOpenGL2 = ["vtkCommonCore", "vtkCommonDataModel", "vtkCommonMath", "vtkCommonSystem", "vtkCommonTransforms", "vtkFiltersCore", "vtkFiltersGeneral", "vtkFiltersSources", "vtkImagingCore", "vtkRenderingCore", "vtkRenderingOpenGL2", "vtkRenderingVolume"]
