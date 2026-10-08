@@ -24,7 +24,7 @@ export GIT_TERMINAL_PROMPT=0
 
 # The VTK modules we generate bindings for.  Note that rvtk-gen expects the
 # module names VTK uses internally (no `vtk` prefix, semicolon separated).
-MODULES="${MODULES:-vtkCommonCore;vtkCommonDataModel;vtkCommonExecutionModel;vtkCommonMath;vtkCommonTransforms;vtkCommonColor;vtkCommonSystem;vtkCommonMisc;vtkFiltersCore;vtkFiltersSources;vtkFiltersGeneral;vtkFiltersGeometry;vtkIOGeometry;vtkIOCore;vtkIOLegacy;vtkIOPLY;vtkImagingHybrid}"
+MODULES="${MODULES:-vtkCommonCore;vtkCommonDataModel;vtkCommonExecutionModel;vtkCommonMath;vtkCommonTransforms;vtkCommonColor;vtkCommonSystem;vtkCommonMisc;vtkFiltersCore;vtkFiltersSources;vtkFiltersGeneral;vtkFiltersGeometry;vtkIOGeometry;vtkIOCore;vtkIOLegacy;vtkIOPLY;vtkImagingHybrid;vtkImagingCore;vtkIOImage;vtkInteractionStyle;vtkInteractionWidgets;vtkRenderingCore;vtkRenderingOpenGL2;vtkRenderingFreeType;vtkRenderingFreeTypeFontConfig;vtkRenderingAnnotation;vtkRenderingVolume;vtkRenderingVolumeOpenGL2;vtkRenderingContext2D;vtkRenderingContextOpenGL2;vtkRenderingUI;vtkRenderingLabel;vtkRenderingLOD;vtkRenderingImage;vtkRenderingHyperTreeGrid;vtkRenderingCellGrid;vtkRenderingGridAxes}"
 
 # WrapVTK expects the CMake component names, i.e. without the `vtk` prefix.
 WRAP_MODULES="$(echo "$MODULES" | sed 's/vtk\([A-Za-z0-9]*\)/\1/g')"
@@ -58,10 +58,13 @@ cmake -S "$WRAPVTK_DIR" -B "$WRAPVTK_DIR/build" \
   -DWRAPVTK_MODULES="$WRAP_MODULES"
 cmake --build "$WRAPVTK_DIR/build" --parallel
 
+VTK_INCLUDE="${VTK_INCLUDE:-$(dirname "$(dirname "$VTK_DIR")")/include/vtk-$(basename "$VTK_DIR" | sed 's/^vtk-//')"}"
+
 # --- run the generator ------------------------------------------------------
 cargo run --release -p rvtk-gen -- \
   --xml-dir "$WRAPVTK_DIR/build/xml" \
   --repo "$REPO_ROOT" \
+  --vtk-include "$VTK_INCLUDE" \
   --modules "$(echo "$MODULES" | tr ';' ',')"
 
 echo "Done. Rebuild with: cargo build -p rvtk-sys -p rvtk"

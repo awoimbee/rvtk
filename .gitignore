@@ -4,3 +4,9 @@
 # Build directories produced by rvtk-gen (the committed output lives in the
 # crate source trees, these are just scratch/build dirs).
 /rvtk-sys/shim/build
+
+# Local VTK scratch: source tree, build trees and prebuilt installs kept for
+# offline/`RVTK_VTK_SOURCE_DIR`/`RVTK_VTK_PREBUILT_DIR` experiments.
+/.deps/
+# Output directory of the rendering test (it writes PNGs under rvtk/target).
+/rvtk/target/

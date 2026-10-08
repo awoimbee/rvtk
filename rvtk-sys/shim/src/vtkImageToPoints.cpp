@@ -2,6 +2,7 @@
 #include "rvtk_shim.h"
 #include "vtkImageToPoints.h"
 #include "vtkAlgorithmOutput.h"
+#include "vtkImageStencilData.h"
 #include "vtkObjectBase.h"
 #include <string>
 
@@ -37,6 +38,11 @@ extern "C" void vtkImageToPoints__SetStencilConnection__0(void* self, void* port
 extern "C" void* vtkImageToPoints__GetStencilConnection__0(void* self) {
   (void)self;
   return static_cast<void*>(static_cast<vtkImageToPoints*>(self)->GetStencilConnection());
+}
+
+extern "C" void vtkImageToPoints__SetStencilData__0(void* self, void* stencil) {
+  (void)self;
+  static_cast<vtkImageToPoints*>(self)->SetStencilData(static_cast<vtkImageStencilData*>(stencil));
 }
 
 extern "C" void vtkImageToPoints__SetOutputPointsPrecision__0(void* self, int32_t _arg) {

@@ -16,3 +16,19 @@ doctest = false
 
 [dependencies]
 rvtk-sys.workspace = true
+
+# Derived from the generated `rvtk-gen/tests/smoke.rs`.
+
+# The rendering test drives VTK's OpenGL backend directly.  On macOS that
+# creates an `NSWindow` (VTK's Cocoa backend does so even when offscreen
+# rendering is on), and AppKit requires window creation on the *main* thread,
+# while the built-in libtest harness runs every test on a worker thread.
+# The smoke and rendering tests therefore run through their own `main`, which
+# keeps them on the main thread and makes a crash identify its class.
+[[test]]
+name = "smoke"
+harness = false
+
+[[test]]
+name = "rendering"
+harness = false

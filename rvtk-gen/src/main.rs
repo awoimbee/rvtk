@@ -40,6 +40,14 @@ struct Args {
     /// Comma separated list of VTK modules to wrap (default: all found).
     #[arg(long)]
     modules: Option<String>,
+
+    /// VTK include directory (e.g. `$VTK/include/vtk-9.7`).
+    ///
+    /// Used to recognise VTK's "fake superclass" array shims, which declare an
+    /// interface that only exists when `__VTK_WRAP__` is defined and which
+    /// segfault inside VTK when called from ordinary C++.
+    #[arg(long)]
+    vtk_include: Option<PathBuf>,
 }
 
 fn main() -> Result<()> {
@@ -56,7 +64,13 @@ fn main() -> Result<()> {
         })
         .unwrap_or_default();
 
-    let api = parse::build_api(&args.xml_dir, &parse::BuildOptions { modules })?;
+    let api = parse::build_api(
+        &args.xml_dir,
+        &parse::BuildOptions {
+            modules,
+            vtk_include: args.vtk_include.clone(),
+        },
+    )?;
 
     let shim = args.repo.join("rvtk-sys/shim");
     let shim_src = shim.join("src");
@@ -88,6 +102,9 @@ fn main() -> Result<()> {
 
     let wrappers = gen_rust::emit_wrappers(&api);
     std::fs::write(args.repo.join("rvtk/src/generated.rs"), wrappers)?;
+
+    let smoke = gen_rust::emit_smoke_test(&api);
+    std::fs::write(args.repo.join("rvtk/tests/smoke.rs"), smoke)?;
 
     println!("{}", gen_rust::summary(&api));
     Ok(())

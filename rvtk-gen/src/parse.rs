@@ -5,7 +5,7 @@
 //! representation, dropping anything that cannot be represented across a C ABI.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 
@@ -46,6 +46,7 @@ struct RawClass {
     header: String,
     is_abstract: bool,
     is_template: bool,
+    is_deprecated: bool,
     bases: Vec<String>,
     inheritance: Vec<String>,
     has_public_ctor: bool,
@@ -182,6 +183,7 @@ fn parse_class(node: &roxmltree::Node, module: &str, header: &str) -> RawClass {
         header: header.to_string(),
         is_abstract: bool_attr(node, "abstract"),
         is_template: bool_attr(node, "template"),
+        is_deprecated: bool_attr(node, "deprecated"),
         bases,
         inheritance,
         has_public_ctor,
@@ -340,6 +342,10 @@ fn resolve_ty(
 
     if base == "void" {
         if ptr_depth == 1 {
+            // `void *x[6]` decays to `void **`; reject it as a parameter.
+            if size.is_some() {
+                return Err(());
+            }
             return Ok(Some(Ty::RawPtr));
         } else if ptr_depth > 1 {
             return Err(());
@@ -366,6 +372,19 @@ fn resolve_ty(
 
     for (name, ty) in SCALAR_MAP {
         if *name == base {
+            if has_ptr {
+                // `static int *GetFooCases()` carries a size hint: the method
+                // returns a pointer to a fixed-size static array, which we can
+                // copy out safely.  Only applies to return values: as a
+                // parameter the same encoding means `T *x[N]`, an array of
+                // pointers that decays to `T**`.
+                if is_return {
+                    if let Some(n) = size.and_then(parse_property_size) {
+                        return Ok(Some(Ty::Array(Box::new(ty.clone()), n, is_const)));
+                    }
+                }
+                return Err(()); // `T *x` or `T *x[N]`: no expressible extent
+            }
             if let Some(size_str) = size {
                 if size_str == ":" {
                     if is_return {
@@ -379,9 +398,6 @@ fn resolve_ty(
                 if let Some(n) = parse_property_size(size_str) {
                     return Ok(Some(Ty::Array(Box::new(ty.clone()), n, is_const)));
                 }
-            }
-            if has_ptr {
-                return Err(()); // pointer to scalar without a known extent
             }
             return Ok(Some(ty.clone()));
         }
@@ -411,23 +427,89 @@ fn resolve_ty(
 
 pub struct BuildOptions {
     pub modules: Vec<String>,
+    /// VTK include directory.  When set, classes whose header declares one of
+    /// VTK's wrapper-only array interfaces are skipped.
+    pub vtk_include: Option<PathBuf>,
+}
+
+/// VTK declares these interfaces only for wrappers: the declarations sit behind
+/// `#if defined(__VTK_WRAP__) && !defined(__VTK_WRAP_PYTHON__)`.
+///
+/// For the "fake superclass" array shims (`vtkAffineTypeFloat64Array`,
+/// `vtkCompositeTypeInt32Array`, ...) the interface exposes a backend that a
+/// plain C++ consumer cannot construct, so the accessors dereference an
+/// uninitialised member.  `vtkAffineTypeFloat32Array::GetSlope()` segfaults in
+/// plain C++ with no rvtk involved, so these classes must not be reachable from
+/// the safe API.  The classic typed arrays (`vtkShortArray` and friends) use
+/// `vtkCreateWrappedArrayInterface` instead and are unaffected.
+const BACKEND_INTERFACE_MACROS: &[&str] = &[
+    "vtkCreateAffineWrappedArrayInterface",
+    "vtkCreateCompositeWrappedArrayInterface",
+    "vtkCreateConstantWrappedArrayInterface",
+    "vtkCreateIndexedWrappedArrayInterface",
+    "vtkCreateScaledSOAWrappedArrayInterface",
+    "vtkCreateSOAWrappedArrayInterface",
+    "vtkCreateStdFunctionWrappedArrayInterface",
+    "vtkCreateStridedWrappedArrayInterface",
+    "vtkCreateStructuredPointWrappedArrayInterface",
+];
+
+/// True if `header` declares one of the wrapper-only array interfaces that a
+/// plain C++ consumer cannot use safely.
+fn is_wrapper_backend_shim(vtk_include: &Path, header: &str) -> bool {
+    let Ok(text) = std::fs::read_to_string(vtk_include.join(header)) else {
+        return false;
+    };
+    BACKEND_INTERFACE_MACROS.iter().any(|mac| text.contains(mac))
 }
 
 pub fn build_api(xml_dir: &Path, opts: &BuildOptions) -> Result<Api> {
     let raws = parse_dir(xml_dir, &opts.modules)?;
     let refcounted = refcounted_set(&raws);
 
-    // Classes we actually emit (`refcounted`, not templates).
+    // Classes we actually emit: reference counted, not templates, and not
+    // deprecated.  VTK's deprecated classes are obsolete compatibility shims
+    // (e.g. `vtkAffineCharArray`, which VTK itself documents as superseded by
+    // `vtkAffineTypeCharArray`); several of them segfault inside VTK even in
+    // pure C++, so they must not be reachable from the safe API.
+    // VTK's wrapper-only array shims (see `BACKEND_INTERFACE_MACROS`).
+    let shims: BTreeSet<String> = match &opts.vtk_include {
+        Some(dir) => raws
+            .iter()
+            .filter(|c| {
+                refcounted.contains(&c.name)
+                    && !c.is_template
+                    && !c.is_deprecated
+                    && is_wrapper_backend_shim(dir, &c.header)
+            })
+            .map(|c| c.name.clone())
+            .collect(),
+        None => BTreeSet::new(),
+    };
     let wrapped: BTreeSet<String> = raws
         .iter()
-        .filter(|c| refcounted.contains(&c.name) && !c.is_template)
+        .filter(|c| {
+            refcounted.contains(&c.name)
+                && !c.is_template
+                && !c.is_deprecated
+                && !shims.contains(&c.name)
+        })
         .map(|c| c.name.clone())
         .collect();
+    let skipped_deprecated_classes = raws
+        .iter()
+        .filter(|c| refcounted.contains(&c.name) && !c.is_template && c.is_deprecated)
+        .count();
+    let skipped_wrapper_shims = shims.len();
     let ctx = TypeCtx {
         known_classes: &wrapped,
     };
 
-    let mut api = Api::default();
+    let mut api = Api {
+        skipped_deprecated_classes,
+        skipped_wrapper_shims,
+        ..Api::default()
+    };
     let mut modules: BTreeSet<String> = BTreeSet::new();
 
     for raw in &raws {
@@ -599,6 +681,12 @@ pub fn build_api(xml_dir: &Path, opts: &BuildOptions) -> Result<Api> {
                 } else {
                     format!("{base}_v{}", rank + 1)
                 };
+                if RESERVED_METHODS.contains(&name.as_str()) {
+                    // Never let a generated method shadow a trait method we
+                    // rely on.  In particular a VTK `Clone()` must not take the
+                    // name of our reference-counting `Clone` impl.
+                    name.push('_');
+                }
                 while used_rust_names.contains(&name) {
                     name.push('_');
                 }
@@ -680,6 +768,21 @@ fn sanitize_ident(name: &str) -> String {
     }
     s
 }
+
+/// Method names that would shadow trait methods the generated wrappers
+/// themselves implement or rely on.  A generated method that took one of these
+/// names would silently change the behaviour of `x.clone()` and friends, so it
+/// gets a trailing underscore instead.
+const RESERVED_METHODS: &[&str] = &[
+    // implemented by (or relied on by) the generated wrappers
+    "clone",
+    "clone_from",
+    "drop",
+    "fmt",
+    "default",
+    "deref",
+    "deref_mut",
+];
 
 const RUST_KEYWORDS: &[&str] = &[
     "as", "break", "const", "continue", "crate", "else", "enum", "extern", "false", "fn", "for",

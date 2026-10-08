@@ -20,6 +20,11 @@ pub struct Api {
     pub headers: BTreeMap<String, String>,
     /// Number of methods that were skipped because a type was unsupported.
     pub skipped_methods: usize,
+    /// Number of classes that were skipped because VTK marks them deprecated.
+    pub skipped_deprecated_classes: usize,
+    /// Number of classes that were skipped because VTK only declares their
+    /// interface for wrappers.
+    pub skipped_wrapper_shims: usize,
 }
 
 #[derive(Debug, Clone)]

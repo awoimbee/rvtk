@@ -19,18 +19,37 @@ find_package(VTK REQUIRED COMPONENTS
   vtkFiltersSources
   vtkIOCore
   vtkIOGeometry
+  vtkIOImage
   vtkIOLegacy
   vtkIOPLY
+  vtkImagingCore
   vtkImagingHybrid
+  vtkInteractionStyle
+  vtkInteractionWidgets
+  vtkRenderingAnnotation
+  vtkRenderingCellGrid
+  vtkRenderingContext2D
+  vtkRenderingContextOpenGL2
+  vtkRenderingCore
+  vtkRenderingFreeType
+  vtkRenderingHyperTreeGrid
+  vtkRenderingImage
+  vtkRenderingLOD
+  vtkRenderingLabel
+  vtkRenderingOpenGL2
+  vtkRenderingUI
+  vtkRenderingVolume
+  vtkRenderingVolumeOpenGL2
 )
 
-add_library(rvtk_shim SHARED
+add_library(rvtk_shim STATIC
   support/rvtk_shim.cpp
+  src/vtk3DCursorRepresentation.cpp
+  src/vtk3DCursorWidget.cpp
   src/vtk3DLinearGridCrinkleExtractor.cpp
   src/vtk3DLinearGridPlaneCutter.cpp
-  src/vtkAMRDataInternals.cpp
+  src/vtk3DWidget.cpp
   src/vtkAMRDataObject.cpp
-  src/vtkAMRInformation.cpp
   src/vtkAMRMetaData.cpp
   src/vtkAMRUtilities.cpp
   src/vtkASCIITextCodec.cpp
@@ -40,44 +59,47 @@ add_library(rvtk_shim SHARED
   src/vtkAbstractCellArray.cpp
   src/vtkAbstractCellLinks.cpp
   src/vtkAbstractCellLocator.cpp
+  src/vtkAbstractContextBufferId.cpp
+  src/vtkAbstractContextItem.cpp
   src/vtkAbstractElectronicData.cpp
   src/vtkAbstractGridConnectivity.cpp
+  src/vtkAbstractHyperTreeGridMapper.cpp
+  src/vtkAbstractImageInterpolator.cpp
+  src/vtkAbstractInteractionDevice.cpp
+  src/vtkAbstractMapper.cpp
+  src/vtkAbstractMapper3D.cpp
   src/vtkAbstractParticleWriter.cpp
+  src/vtkAbstractPicker.cpp
   src/vtkAbstractPointLocator.cpp
   src/vtkAbstractPolyDataReader.cpp
+  src/vtkAbstractPolygonalHandleRepresentation3D.cpp
+  src/vtkAbstractPropPicker.cpp
+  src/vtkAbstractRenderDevice.cpp
+  src/vtkAbstractSplineRepresentation.cpp
   src/vtkAbstractTransform.cpp
+  src/vtkAbstractVolumeMapper.cpp
+  src/vtkAbstractWidget.cpp
+  src/vtkActor.cpp
+  src/vtkActor2D.cpp
+  src/vtkActor2DCollection.cpp
+  src/vtkActorCollection.cpp
   src/vtkAdjacentVertexIterator.cpp
-  src/vtkAffineCharArray.cpp
-  src/vtkAffineDoubleArray.cpp
-  src/vtkAffineFloatArray.cpp
-  src/vtkAffineIdTypeArray.cpp
-  src/vtkAffineIntArray.cpp
-  src/vtkAffineLongArray.cpp
-  src/vtkAffineLongLongArray.cpp
-  src/vtkAffineShortArray.cpp
-  src/vtkAffineSignedCharArray.cpp
-  src/vtkAffineTypeFloat32Array.cpp
-  src/vtkAffineTypeFloat64Array.cpp
-  src/vtkAffineTypeInt16Array.cpp
-  src/vtkAffineTypeInt32Array.cpp
-  src/vtkAffineTypeInt64Array.cpp
-  src/vtkAffineTypeInt8Array.cpp
-  src/vtkAffineTypeUInt16Array.cpp
-  src/vtkAffineTypeUInt32Array.cpp
-  src/vtkAffineTypeUInt64Array.cpp
-  src/vtkAffineTypeUInt8Array.cpp
-  src/vtkAffineUnsignedCharArray.cpp
-  src/vtkAffineUnsignedIntArray.cpp
-  src/vtkAffineUnsignedLongArray.cpp
-  src/vtkAffineUnsignedLongLongArray.cpp
-  src/vtkAffineUnsignedShortArray.cpp
+  src/vtkAffineRepresentation.cpp
+  src/vtkAffineRepresentation2D.cpp
+  src/vtkAffineWidget.cpp
   src/vtkAggregateToPartitionedDataSetCollection.cpp
   src/vtkAlgorithm.cpp
   src/vtkAlgorithmOutput.cpp
   src/vtkAmoebaMinimizer.cpp
+  src/vtkAnariVolumeInterface.cpp
+  src/vtkAngleRepresentation.cpp
+  src/vtkAngleRepresentation2D.cpp
+  src/vtkAngleRepresentation3D.cpp
+  src/vtkAngleWidget.cpp
   src/vtkAnimateModes.cpp
   src/vtkAnimationCue.cpp
   src/vtkAnimationScene.cpp
+  src/vtkAnnotatedCubeActor.cpp
   src/vtkAnnotation.cpp
   src/vtkAnnotationLayers.cpp
   src/vtkAnnotationLayersAlgorithm.cpp
@@ -93,35 +115,56 @@ add_library(rvtk_shim SHARED
   src/vtkAppendPolyData.cpp
   src/vtkAppendSelection.cpp
   src/vtkApproximatingSubdivisionFilter.cpp
+  src/vtkArcPlotter.cpp
   src/vtkArcSource.cpp
   src/vtkArchiver.cpp
   src/vtkAreaContourSpectrumFilter.cpp
+  src/vtkAreaPicker.cpp
   src/vtkArray.cpp
   src/vtkArrayCalculator.cpp
   src/vtkArrayData.cpp
   src/vtkArrayDataAlgorithm.cpp
   src/vtkArrayDataReader.cpp
   src/vtkArrayDataWriter.cpp
-  src/vtkArrayIterator.cpp
   src/vtkArrayReader.cpp
   src/vtkArrayRename.cpp
+  src/vtkArrayRenderer.cpp
   src/vtkArrayWriter.cpp
   src/vtkArrowSource.cpp
+  src/vtkAssembly.cpp
+  src/vtkAssemblyNode.cpp
+  src/vtkAssemblyPath.cpp
+  src/vtkAssemblyPaths.cpp
   src/vtkAssignAttribute.cpp
   src/vtkAttributeDataToFieldDataFilter.cpp
   src/vtkAttributeDataToTableFilter.cpp
   src/vtkAttributeSmoothingFilter.cpp
   src/vtkAttributesErrorMetric.cpp
+  src/vtkAvatar.cpp
   src/vtkAxes.cpp
+  src/vtkAxesActor.cpp
+  src/vtkAxesTransformRepresentation.cpp
+  src/vtkAxesTransformWidget.cpp
+  src/vtkAxisActor.cpp
+  src/vtkAxisActor2D.cpp
   src/vtkAxisAlignedReflectionFilter.cpp
   src/vtkAxisAlignedTransformFilter.cpp
+  src/vtkAxisFollower.cpp
+  src/vtkBMPReader.cpp
+  src/vtkBMPWriter.cpp
   src/vtkBSPCuts.cpp
   src/vtkBSPIntersections.cpp
   src/vtkBYUReader.cpp
   src/vtkBYUWriter.cpp
+  src/vtkBackgroundColorMonitor.cpp
+  src/vtkBalloonRepresentation.cpp
+  src/vtkBalloonWidget.cpp
+  src/vtkBarChartActor.cpp
   src/vtkBase64InputStream.cpp
   src/vtkBase64OutputStream.cpp
   src/vtkBase64Utilities.cpp
+  src/vtkBatchedLabeledDataMapper.cpp
+  src/vtkBezierContourLineInterpolator.cpp
   src/vtkBezierCurve.cpp
   src/vtkBezierHexahedron.cpp
   src/vtkBezierInterpolation.cpp
@@ -129,27 +172,59 @@ add_library(rvtk_shim SHARED
   src/vtkBezierTetra.cpp
   src/vtkBezierTriangle.cpp
   src/vtkBezierWedge.cpp
+  src/vtkBiDimensionalRepresentation.cpp
+  src/vtkBiDimensionalRepresentation2D.cpp
+  src/vtkBiDimensionalWidget.cpp
   src/vtkBiQuadraticQuad.cpp
   src/vtkBiQuadraticQuadraticHexahedron.cpp
   src/vtkBiQuadraticQuadraticWedge.cpp
   src/vtkBiQuadraticTriangle.cpp
+  src/vtkBillboardTextActor3D.cpp
   src/vtkBinCellDataFilter.cpp
   src/vtkBinnedDecimation.cpp
   src/vtkBitArray.cpp
-  src/vtkBitArrayIterator.cpp
   src/vtkBlankStructuredGrid.cpp
   src/vtkBlankStructuredGridWithImage.cpp
   src/vtkBlockIdScalars.cpp
+  src/vtkBlockItem.cpp
   src/vtkBooleanOperationPolyDataFilter.cpp
   src/vtkBooleanTexture.cpp
+  src/vtkBorderRepresentation.cpp
+  src/vtkBorderWidget.cpp
+  src/vtkBoundedPlanePointPlacer.cpp
+  src/vtkBoundedWidgetRepresentation.cpp
   src/vtkBox.cpp
   src/vtkBoxClipDataSet.cpp
   src/vtkBoxMuellerRandomSequence.cpp
+  src/vtkBoxRepresentation.cpp
+  src/vtkBoxWidget.cpp
+  src/vtkBoxWidget2.cpp
+  src/vtkBrokenLineWidget.cpp
   src/vtkBrownianPoints.cpp
+  src/vtkBrush.cpp
+  src/vtkButtonRepresentation.cpp
   src/vtkButtonSource.cpp
+  src/vtkButtonWidget.cpp
   src/vtkByteSwap.cpp
   src/vtkCachedStreamingDemandDrivenPipeline.cpp
   src/vtkCallbackCommand.cpp
+  src/vtkCamera.cpp
+  src/vtkCamera3DRepresentation.cpp
+  src/vtkCamera3DWidget.cpp
+  src/vtkCameraActor.cpp
+  src/vtkCameraHandleSource.cpp
+  src/vtkCameraInterpolator.cpp
+  src/vtkCameraManipulator.cpp
+  src/vtkCameraOrientationRepresentation.cpp
+  src/vtkCameraOrientationWidget.cpp
+  src/vtkCameraPass.cpp
+  src/vtkCameraPathRepresentation.cpp
+  src/vtkCameraPathWidget.cpp
+  src/vtkCameraRepresentation.cpp
+  src/vtkCameraWidget.cpp
+  src/vtkCaptionActor2D.cpp
+  src/vtkCaptionRepresentation.cpp
+  src/vtkCaptionWidget.cpp
   src/vtkCartesianGrid.cpp
   src/vtkCastToConcrete.cpp
   src/vtkCell.cpp
@@ -158,17 +233,22 @@ add_library(rvtk_shim SHARED
   src/vtkCellArrayIterator.cpp
   src/vtkCellAttribute.cpp
   src/vtkCellAttributeCalculator.cpp
+  src/vtkCellCenterDepthSort.cpp
   src/vtkCellCenters.cpp
+  src/vtkCellCentersPointPlacer.cpp
   src/vtkCellData.cpp
   src/vtkCellDataToPointData.cpp
   src/vtkCellDerivatives.cpp
+  src/vtkCellGraphicsPrimitiveMap.cpp
   src/vtkCellGrid.cpp
   src/vtkCellGridAlgorithm.cpp
   src/vtkCellGridBoundsQuery.cpp
   src/vtkCellGridCopyQuery.cpp
   src/vtkCellGridEvaluator.cpp
+  src/vtkCellGridMapper.cpp
   src/vtkCellGridQuery.cpp
   src/vtkCellGridRangeQuery.cpp
+  src/vtkCellGridRenderRequest.cpp
   src/vtkCellGridResponderBase.cpp
   src/vtkCellGridResponders.cpp
   src/vtkCellGridSidesCache.cpp
@@ -177,35 +257,47 @@ add_library(rvtk_shim SHARED
   src/vtkCellIterator.cpp
   src/vtkCellLinks.cpp
   src/vtkCellLocator.cpp
-  src/vtkCellLocatorStrategy.cpp
   src/vtkCellMetadata.cpp
+  src/vtkCellPicker.cpp
   src/vtkCellTreeLocator.cpp
   src/vtkCellTypeSource.cpp
   src/vtkCellTypeUtilities.cpp
   src/vtkCellTypes.cpp
   src/vtkCellValidator.cpp
   src/vtkCenterOfMass.cpp
+  src/vtkCenteredSliderRepresentation.cpp
+  src/vtkCenteredSliderWidget.cpp
   src/vtkChacoReader.cpp
   src/vtkCharArray.cpp
+  src/vtkCheckerboardRepresentation.cpp
   src/vtkCheckerboardSplatter.cpp
+  src/vtkCheckerboardWidget.cpp
   src/vtkCleanPolyData.cpp
   src/vtkCleanUnstructuredGrid.cpp
   src/vtkCleanUnstructuredGridCells.cpp
+  src/vtkClearRGBPass.cpp
+  src/vtkClearZPass.cpp
   src/vtkClientSocket.cpp
   src/vtkClipClosedSurface.cpp
   src/vtkClipConvexPolyData.cpp
   src/vtkClipDataSet.cpp
   src/vtkClipPolyData.cpp
   src/vtkClipVolume.cpp
-  src/vtkClosestNPointsStrategy.cpp
-  src/vtkClosestPointStrategy.cpp
+  src/vtkClosedSurfacePointPlacer.cpp
+  src/vtkCocoaHardwareWindow.cpp
+  src/vtkCocoaRenderWindow.cpp
+  src/vtkCocoaRenderWindowInteractor.cpp
   src/vtkCoincidentPoints.cpp
   src/vtkCollection.cpp
-  src/vtkCollectionIterator.cpp
   src/vtkColorSeries.cpp
+  src/vtkColorTransferFunction.cpp
   src/vtkCommand.cpp
-  src/vtkCompositeCharArray.cpp
+  src/vtkCompassRepresentation.cpp
+  src/vtkCompassWidget.cpp
+  src/vtkCompositeCellGridMapper.cpp
   src/vtkCompositeCutter.cpp
+  src/vtkCompositeDataDisplayAttributes.cpp
+  src/vtkCompositeDataDisplayAttributesLegacy.cpp
   src/vtkCompositeDataGeometryFilter.cpp
   src/vtkCompositeDataIterator.cpp
   src/vtkCompositeDataPipeline.cpp
@@ -214,82 +306,65 @@ add_library(rvtk_shim SHARED
   src/vtkCompositeDataSet.cpp
   src/vtkCompositeDataSetAlgorithm.cpp
   src/vtkCompositeDataWriter.cpp
-  src/vtkCompositeDoubleArray.cpp
-  src/vtkCompositeFloatArray.cpp
-  src/vtkCompositeIdTypeArray.cpp
-  src/vtkCompositeIntArray.cpp
-  src/vtkCompositeLongArray.cpp
-  src/vtkCompositeLongLongArray.cpp
-  src/vtkCompositeShortArray.cpp
-  src/vtkCompositeSignedCharArray.cpp
-  src/vtkCompositeTypeFloat32Array.cpp
-  src/vtkCompositeTypeFloat64Array.cpp
-  src/vtkCompositeTypeInt16Array.cpp
-  src/vtkCompositeTypeInt32Array.cpp
-  src/vtkCompositeTypeInt64Array.cpp
-  src/vtkCompositeTypeInt8Array.cpp
-  src/vtkCompositeTypeUInt16Array.cpp
-  src/vtkCompositeTypeUInt32Array.cpp
-  src/vtkCompositeTypeUInt64Array.cpp
-  src/vtkCompositeTypeUInt8Array.cpp
-  src/vtkCompositeUnsignedCharArray.cpp
-  src/vtkCompositeUnsignedIntArray.cpp
-  src/vtkCompositeUnsignedLongArray.cpp
-  src/vtkCompositeUnsignedLongLongArray.cpp
-  src/vtkCompositeUnsignedShortArray.cpp
+  src/vtkCompositePolyDataMapper.cpp
+  src/vtkCompositePolyDataMapperDelegator.cpp
   src/vtkCone.cpp
   src/vtkConeSource.cpp
   src/vtkConnectivityFilter.cpp
-  src/vtkConstantCharArray.cpp
-  src/vtkConstantDoubleArray.cpp
-  src/vtkConstantFloatArray.cpp
-  src/vtkConstantIdTypeArray.cpp
-  src/vtkConstantIntArray.cpp
-  src/vtkConstantLongArray.cpp
-  src/vtkConstantLongLongArray.cpp
-  src/vtkConstantShortArray.cpp
-  src/vtkConstantSignedCharArray.cpp
-  src/vtkConstantTypeFloat32Array.cpp
-  src/vtkConstantTypeFloat64Array.cpp
-  src/vtkConstantTypeInt16Array.cpp
-  src/vtkConstantTypeInt32Array.cpp
-  src/vtkConstantTypeInt64Array.cpp
-  src/vtkConstantTypeInt8Array.cpp
-  src/vtkConstantTypeUInt16Array.cpp
-  src/vtkConstantTypeUInt32Array.cpp
-  src/vtkConstantTypeUInt64Array.cpp
-  src/vtkConstantTypeUInt8Array.cpp
-  src/vtkConstantUnsignedCharArray.cpp
-  src/vtkConstantUnsignedIntArray.cpp
-  src/vtkConstantUnsignedLongArray.cpp
-  src/vtkConstantUnsignedLongLongArray.cpp
-  src/vtkConstantUnsignedShortArray.cpp
+  src/vtkConstrainedPointHandleRepresentation.cpp
   src/vtkConstrainedSmoothingFilter.cpp
+  src/vtkContext2D.cpp
+  src/vtkContext3D.cpp
+  src/vtkContextActor.cpp
+  src/vtkContextClip.cpp
+  src/vtkContextDevice2D.cpp
+  src/vtkContextDevice3D.cpp
+  src/vtkContextItem.cpp
+  src/vtkContextMapper2D.cpp
+  src/vtkContextScene.cpp
+  src/vtkContextTransform.cpp
+  src/vtkContinuousValueWidget.cpp
+  src/vtkContinuousValueWidgetRepresentation.cpp
   src/vtkContour3DLinearGrid.cpp
   src/vtkContourFilter.cpp
   src/vtkContourGrid.cpp
+  src/vtkContourLineInterpolator.cpp
+  src/vtkContourRepresentation.cpp
   src/vtkContourTriangulator.cpp
   src/vtkContourValues.cpp
+  src/vtkContourWidget.cpp
   src/vtkConvertToMultiBlockDataSet.cpp
   src/vtkConvertToPartitionedDataSetCollection.cpp
   src/vtkConvertToPolyhedra.cpp
   src/vtkConvexHull.cpp
+  src/vtkConvexHull2D.cpp
   src/vtkConvexPointSet.cpp
+  src/vtkCoordinate.cpp
   src/vtkCoordinateFrame.cpp
+  src/vtkCoordinateFrameRepresentation.cpp
+  src/vtkCoordinateFrameWidget.cpp
+  src/vtkCornerAnnotation.cpp
   src/vtkCountFaces.cpp
   src/vtkCountVertices.cpp
+  src/vtkCubeAxesActor.cpp
+  src/vtkCubeAxesActor2D.cpp
   src/vtkCubeSource.cpp
   src/vtkCubicLine.cpp
+  src/vtkCuller.cpp
+  src/vtkCullerCollection.cpp
   src/vtkCursor2D.cpp
   src/vtkCursor3D.cpp
   src/vtkCurvatures.cpp
+  src/vtkCurveRepresentation.cpp
   src/vtkCutter.cpp
   src/vtkCylinder.cpp
   src/vtkCylinderSource.cpp
   src/vtkCylindricalTransform.cpp
+  src/vtkDEMReader.cpp
+  src/vtkDGRenderResponder.cpp
+  src/vtkDICOMImageReader.cpp
   src/vtkDataArray.cpp
   src/vtkDataArrayCollection.cpp
-  src/vtkDataArrayCollectionIterator.cpp
   src/vtkDataArraySelection.cpp
   src/vtkDataAssembly.cpp
   src/vtkDataAssemblyUtilities.cpp
@@ -314,12 +389,14 @@ add_library(rvtk_shim SHARED
   src/vtkDataSetEdgeSubdivisionCriterion.cpp
   src/vtkDataSetGradient.cpp
   src/vtkDataSetGradientPrecompute.cpp
+  src/vtkDataSetMapper.cpp
   src/vtkDataSetReader.cpp
   src/vtkDataSetRegionSurfaceFilter.cpp
   src/vtkDataSetSurfaceFilter.cpp
   src/vtkDataSetToDataObjectFilter.cpp
   src/vtkDataSetTriangleFilter.cpp
   src/vtkDataSetWriter.cpp
+  src/vtkDataTransferHelper.cpp
   src/vtkDataWriter.cpp
   src/vtkDateToNumeric.cpp
   src/vtkDebugLeaks.cpp
@@ -329,6 +406,7 @@ add_library(rvtk_shim SHARED
   src/vtkDecimatePolylineFilter.cpp
   src/vtkDecimatePolylineStrategy.cpp
   src/vtkDecimatePro.cpp
+  src/vtkDefaultPass.cpp
   src/vtkDeflectNormals.cpp
   src/vtkDeformPointSet.cpp
   src/vtkDelaunay2D.cpp
@@ -336,33 +414,57 @@ add_library(rvtk_shim SHARED
   src/vtkDelimitedTextWriter.cpp
   src/vtkDemandDrivenPipeline.cpp
   src/vtkDensifyPolyData.cpp
+  src/vtkDepthImageProcessingPass.cpp
+  src/vtkDepthImageToPointCloud.cpp
+  src/vtkDepthOfFieldPass.cpp
+  src/vtkDepthPeelingPass.cpp
   src/vtkDeserializer.cpp
   src/vtkDiagonalMatrixSource.cpp
   src/vtkDicer.cpp
+  src/vtkDijkstraImageContourLineInterpolator.cpp
   src/vtkDirectedAcyclicGraph.cpp
   src/vtkDirectedGraph.cpp
   src/vtkDirectedGraphAlgorithm.cpp
+  src/vtkDirectionEncoder.cpp
   src/vtkDirectory.cpp
   src/vtkDiscreteFlyingEdges2D.cpp
   src/vtkDiscreteFlyingEdges3D.cpp
   src/vtkDiscreteFlyingEdgesClipper2D.cpp
   src/vtkDiscreteMarchingCubes.cpp
+  src/vtkDiscretizableColorTransferFunction.cpp
   src/vtkDiskSource.cpp
+  src/vtkDisplaySizedImplicitPlaneRepresentation.cpp
+  src/vtkDisplaySizedImplicitPlaneWidget.cpp
   src/vtkDistancePolyDataFilter.cpp
+  src/vtkDistanceRepresentation.cpp
+  src/vtkDistanceRepresentation2D.cpp
+  src/vtkDistanceRepresentation3D.cpp
+  src/vtkDistanceToCamera.cpp
+  src/vtkDistanceWidget.cpp
   src/vtkDistributedGraphHelper.cpp
   src/vtkDoubleArray.cpp
+  src/vtkDualDepthPeelingPass.cpp
+  src/vtkDummyGPUInfoList.cpp
+  src/vtkDynamic2DLabelMapper.cpp
   src/vtkDynamicLoader.cpp
+  src/vtkEDLShading.cpp
   src/vtkEdgeListIterator.cpp
   src/vtkEdgePoints.cpp
   src/vtkEdgeSubdivisionCriterion.cpp
   src/vtkEdgeTable.cpp
   src/vtkElevationFilter.cpp
   src/vtkEllipseArcSource.cpp
+  src/vtkEllipsoidTensorProbeRepresentation.cpp
   src/vtkEllipticalButtonSource.cpp
   src/vtkEmptyCell.cpp
+  src/vtkEncodedGradientEstimator.cpp
+  src/vtkEncodedGradientShader.cpp
   src/vtkEndFor.cpp
   src/vtkEnsembleSource.cpp
+  src/vtkEqualizerContextItem.cpp
   src/vtkEqualizerFilter.cpp
+  src/vtkEquirectangularToCubeMapTexture.cpp
+  src/vtkEvent.cpp
   src/vtkEventData.cpp
   src/vtkEventDataDevice3D.cpp
   src/vtkEventDataForDevice.cpp
@@ -390,8 +492,10 @@ add_library(rvtk_shim SHARED
   src/vtkExtractSelectedFrustum.cpp
   src/vtkExtractSelectionBase.cpp
   src/vtkExtractStructuredGridHelper.cpp
+  src/vtkExtractVOI.cpp
   src/vtkFFT.cpp
   src/vtkFLUENTReader.cpp
+  src/vtkFXAAOptions.cpp
   src/vtkFacetWriter.cpp
   src/vtkFastSplatter.cpp
   src/vtkFeatureEdges.cpp
@@ -401,22 +505,54 @@ add_library(rvtk_shim SHARED
   src/vtkFileOutputWindow.cpp
   src/vtkFileResourceStream.cpp
   src/vtkFindCellStrategy.cpp
+  src/vtkFiniteDifferenceGradientEstimator.cpp
   src/vtkFiniteElementFieldDistributor.cpp
+  src/vtkFinitePlaneRepresentation.cpp
+  src/vtkFinitePlaneWidget.cpp
+  src/vtkFixedPointRayCastImage.cpp
+  src/vtkFixedPointVolumeRayCastCompositeGOHelper.cpp
+  src/vtkFixedPointVolumeRayCastCompositeGOShadeHelper.cpp
+  src/vtkFixedPointVolumeRayCastCompositeHelper.cpp
+  src/vtkFixedPointVolumeRayCastCompositeShadeHelper.cpp
+  src/vtkFixedPointVolumeRayCastHelper.cpp
+  src/vtkFixedPointVolumeRayCastMIPHelper.cpp
+  src/vtkFixedPointVolumeRayCastMapper.cpp
+  src/vtkFixedSizeHandleRepresentation3D.cpp
+  src/vtkFlagpoleLabel.cpp
   src/vtkFloatArray.cpp
   src/vtkFlyingEdges2D.cpp
   src/vtkFlyingEdges3D.cpp
   src/vtkFlyingEdgesPlaneCutter.cpp
+  src/vtkFocalPlaneContourRepresentation.cpp
+  src/vtkFocalPlanePointPlacer.cpp
+  src/vtkFollower.cpp
   src/vtkForEach.cpp
+  src/vtkFrameBufferObjectBase.cpp
+  src/vtkFramebufferPass.cpp
+  src/vtkFreeTypeLabelRenderStrategy.cpp
+  src/vtkFreeTypeStringToImage.cpp
+  src/vtkFreeTypeTools.cpp
   src/vtkFrustum.cpp
+  src/vtkFrustumCoverageCuller.cpp
   src/vtkFrustumSource.cpp
   src/vtkFunctionParser.cpp
   src/vtkFunctionSet.cpp
   src/vtkGAMBITReader.cpp
+  src/vtkGESignaReader.cpp
+  src/vtkGLSLModCamera.cpp
+  src/vtkGLSLModCoincidentTopology.cpp
+  src/vtkGLSLModLight.cpp
+  src/vtkGLSLModPixelDebugger.cpp
+  src/vtkGLSLModifierBase.cpp
   src/vtkGLTFDocumentLoader.cpp
   src/vtkGLTFReader.cpp
   src/vtkGLTFTexture.cpp
   src/vtkGLTFWriter.cpp
+  src/vtkGPUInfo.cpp
+  src/vtkGPUInfoList.cpp
+  src/vtkGPUVolumeRayCastMapper.cpp
   src/vtkGarbageCollector.cpp
+  src/vtkGaussianBlurPass.cpp
   src/vtkGaussianRandomSequence.cpp
   src/vtkGaussianSplatter.cpp
   src/vtkGeneralTransform.cpp
@@ -432,37 +568,53 @@ add_library(rvtk_shim SHARED
   src/vtkGenericDataObjectWriter.cpp
   src/vtkGenericDataSet.cpp
   src/vtkGenericEdgeTable.cpp
+  src/vtkGenericImageInterpolator.cpp
   src/vtkGenericInterpolatedVelocityField.cpp
+  src/vtkGenericOpenGLRenderWindow.cpp
   src/vtkGenericPointIterator.cpp
+  src/vtkGenericRenderWindowInteractor.cpp
   src/vtkGenericSubdivisionErrorMetric.cpp
+  src/vtkGenericVertexAttributeMapping.cpp
   src/vtkGeometricErrorMetric.cpp
   src/vtkGeometryFilter.cpp
   src/vtkGlobFileNames.cpp
   src/vtkGlyph2D.cpp
   src/vtkGlyph3D.cpp
+  src/vtkGlyph3DMapper.cpp
   src/vtkGlyphSource2D.cpp
   src/vtkGoldenBallSource.cpp
   src/vtkGradientFilter.cpp
   src/vtkGraph.cpp
   src/vtkGraphAlgorithm.cpp
+  src/vtkGraphAnnotationLayersFilter.cpp
   src/vtkGraphEdge.cpp
   src/vtkGraphInternals.cpp
   src/vtkGraphLayoutFilter.cpp
+  src/vtkGraphMapper.cpp
   src/vtkGraphReader.cpp
+  src/vtkGraphToGlyphs.cpp
   src/vtkGraphToPoints.cpp
   src/vtkGraphToPolyData.cpp
   src/vtkGraphWeightEuclideanDistanceFilter.cpp
   src/vtkGraphWeightFilter.cpp
   src/vtkGraphWriter.cpp
+  src/vtkGraphicsFactory.cpp
   src/vtkGridSynchronizedTemplates3D.cpp
   src/vtkGroupDataSetsFilter.cpp
   src/vtkGroupTimeStepsFilter.cpp
+  src/vtkHDRReader.cpp
+  src/vtkHandleRepresentation.cpp
   src/vtkHandleSource.cpp
+  src/vtkHandleWidget.cpp
+  src/vtkHardwarePicker.cpp
+  src/vtkHardwareSelector.cpp
+  src/vtkHardwareWindow.cpp
   src/vtkHeap.cpp
   src/vtkHedgeHog.cpp
+  src/vtkHexagonalBokehBlurPass.cpp
   src/vtkHexagonalPrism.cpp
   src/vtkHexahedron.cpp
-  src/vtkHierarchicalDataLevelFilter.cpp
+  src/vtkHiddenLineRemovalPass.cpp
   src/vtkHigherOrderCurve.cpp
   src/vtkHigherOrderHexahedron.cpp
   src/vtkHigherOrderInterpolation.cpp
@@ -473,6 +625,7 @@ add_library(rvtk_shim SHARED
   src/vtkHilbertCurveSorter.cpp
   src/vtkHomogeneousTransform.cpp
   src/vtkHoudiniPolyDataWriter.cpp
+  src/vtkHoverWidget.cpp
   src/vtkHull.cpp
   src/vtkHyperStreamline.cpp
   src/vtkHyperTree.cpp
@@ -480,6 +633,7 @@ add_library(rvtk_shim SHARED
   src/vtkHyperTreeGridAlgorithm.cpp
   src/vtkHyperTreeGridGeometricLocator.cpp
   src/vtkHyperTreeGridLocator.cpp
+  src/vtkHyperTreeGridMapper.cpp
   src/vtkHyperTreeGridNonOrientedCursor.cpp
   src/vtkHyperTreeGridNonOrientedGeometryCursor.cpp
   src/vtkHyperTreeGridNonOrientedMooreSuperCursor.cpp
@@ -502,26 +656,99 @@ add_library(rvtk_shim SHARED
   src/vtkIdListCollection.cpp
   src/vtkIdTypeArray.cpp
   src/vtkIdentityTransform.cpp
+  src/vtkImageActor.cpp
+  src/vtkImageActorPointPlacer.cpp
   src/vtkImageAlgorithm.cpp
   src/vtkImageAppend.cpp
+  src/vtkImageAppendComponents.cpp
+  src/vtkImageBSplineCoefficients.cpp
+  src/vtkImageBSplineInterpolator.cpp
+  src/vtkImageBinaryThreshold.cpp
+  src/vtkImageBlend.cpp
+  src/vtkImageCacheFilter.cpp
+  src/vtkImageCast.cpp
+  src/vtkImageChangeInformation.cpp
+  src/vtkImageClip.cpp
+  src/vtkImageConstantPad.cpp
+  src/vtkImageCroppingRegionsWidget.cpp
   src/vtkImageCursor3D.cpp
   src/vtkImageData.cpp
   src/vtkImageDataGeometryFilter.cpp
+  src/vtkImageDataStreamer.cpp
   src/vtkImageDataToExplicitStructuredGrid.cpp
   src/vtkImageDataToPointSet.cpp
   src/vtkImageDataToUniformGrid.cpp
+  src/vtkImageDecomposeFilter.cpp
+  src/vtkImageDifference.cpp
+  src/vtkImageExport.cpp
+  src/vtkImageExtractComponents.cpp
+  src/vtkImageFlip.cpp
+  src/vtkImageImport.cpp
+  src/vtkImageImportExecutive.cpp
   src/vtkImageInPlaceFilter.cpp
+  src/vtkImageInterpolator.cpp
+  src/vtkImageItem.cpp
+  src/vtkImageIterateFilter.cpp
+  src/vtkImageMagnify.cpp
+  src/vtkImageMapToColors.cpp
+  src/vtkImageMapper.cpp
+  src/vtkImageMapper3D.cpp
   src/vtkImageMarchingCubes.cpp
+  src/vtkImageMask.cpp
+  src/vtkImageMirrorPad.cpp
+  src/vtkImageOrthoPlanes.cpp
+  src/vtkImagePadFilter.cpp
+  src/vtkImagePermute.cpp
+  src/vtkImagePlaneWidget.cpp
+  src/vtkImageProbeFilter.cpp
+  src/vtkImageProcessingPass.cpp
+  src/vtkImageProperty.cpp
+  src/vtkImageReader.cpp
+  src/vtkImageReader2.cpp
+  src/vtkImageReader2Collection.cpp
+  src/vtkImageReader2Factory.cpp
   src/vtkImageRectilinearWipe.cpp
+  src/vtkImageResample.cpp
+  src/vtkImageResize.cpp
+  src/vtkImageReslice.cpp
+  src/vtkImageResliceMapper.cpp
+  src/vtkImageResliceToColors.cpp
+  src/vtkImageSSIM.cpp
+  src/vtkImageShiftScale.cpp
+  src/vtkImageShrink3D.cpp
+  src/vtkImageSincInterpolator.cpp
+  src/vtkImageSlice.cpp
+  src/vtkImageSliceCollection.cpp
+  src/vtkImageSliceMapper.cpp
+  src/vtkImageStack.cpp
+  src/vtkImageStencilAlgorithm.cpp
+  src/vtkImageStencilData.cpp
+  src/vtkImageStencilSource.cpp
   src/vtkImageToPoints.cpp
   src/vtkImageToStructuredGrid.cpp
   src/vtkImageToStructuredPoints.cpp
+  src/vtkImageTracerWidget.cpp
   src/vtkImageTransform.cpp
+  src/vtkImageTranslateExtent.cpp
+  src/vtkImageWrapPad.cpp
+  src/vtkImageWriter.cpp
+  src/vtkImplicitAnnulusRepresentation.cpp
+  src/vtkImplicitAnnulusWidget.cpp
   src/vtkImplicitBoolean.cpp
+  src/vtkImplicitConeRepresentation.cpp
+  src/vtkImplicitConeWidget.cpp
+  src/vtkImplicitCylinderRepresentation.cpp
+  src/vtkImplicitCylinderWidget.cpp
   src/vtkImplicitDataSet.cpp
+  src/vtkImplicitFrustumRepresentation.cpp
+  src/vtkImplicitFrustumWidget.cpp
   src/vtkImplicitFunction.cpp
   src/vtkImplicitFunctionCollection.cpp
   src/vtkImplicitHalo.cpp
+  src/vtkImplicitImageRepresentation.cpp
+  src/vtkImplicitPlaneRepresentation.cpp
+  src/vtkImplicitPlaneWidget.cpp
+  src/vtkImplicitPlaneWidget2.cpp
   src/vtkImplicitPolyDataDistance.cpp
   src/vtkImplicitProjectOnPlaneDistance.cpp
   src/vtkImplicitSelectionLoop.cpp
@@ -532,30 +759,6 @@ add_library(rvtk_shim SHARED
   src/vtkIncrementalOctreeNode.cpp
   src/vtkIncrementalOctreePointLocator.cpp
   src/vtkIncrementalPointLocator.cpp
-  src/vtkIndexedCharArray.cpp
-  src/vtkIndexedDoubleArray.cpp
-  src/vtkIndexedFloatArray.cpp
-  src/vtkIndexedIdTypeArray.cpp
-  src/vtkIndexedIntArray.cpp
-  src/vtkIndexedLongArray.cpp
-  src/vtkIndexedLongLongArray.cpp
-  src/vtkIndexedShortArray.cpp
-  src/vtkIndexedSignedCharArray.cpp
-  src/vtkIndexedTypeFloat32Array.cpp
-  src/vtkIndexedTypeFloat64Array.cpp
-  src/vtkIndexedTypeInt16Array.cpp
-  src/vtkIndexedTypeInt32Array.cpp
-  src/vtkIndexedTypeInt64Array.cpp
-  src/vtkIndexedTypeInt8Array.cpp
-  src/vtkIndexedTypeUInt16Array.cpp
-  src/vtkIndexedTypeUInt32Array.cpp
-  src/vtkIndexedTypeUInt64Array.cpp
-  src/vtkIndexedTypeUInt8Array.cpp
-  src/vtkIndexedUnsignedCharArray.cpp
-  src/vtkIndexedUnsignedIntArray.cpp
-  src/vtkIndexedUnsignedLongArray.cpp
-  src/vtkIndexedUnsignedLongLongArray.cpp
-  src/vtkIndexedUnsignedShortArray.cpp
   src/vtkInformation.cpp
   src/vtkInformationDataObjectKey.cpp
   src/vtkInformationDataObjectMetaDataKey.cpp
@@ -587,19 +790,60 @@ add_library(rvtk_shim SHARED
   src/vtkInitialValueProblemSolver.cpp
   src/vtkInputStream.cpp
   src/vtkIntArray.cpp
+  src/vtkInteractorEventRecorder.cpp
+  src/vtkInteractorObserver.cpp
+  src/vtkInteractorStyle.cpp
+  src/vtkInteractorStyle3D.cpp
+  src/vtkInteractorStyleDrawPolygon.cpp
+  src/vtkInteractorStyleFlight.cpp
+  src/vtkInteractorStyleImage.cpp
+  src/vtkInteractorStyleJoystickActor.cpp
+  src/vtkInteractorStyleJoystickCamera.cpp
+  src/vtkInteractorStyleManipulator.cpp
+  src/vtkInteractorStyleMultiTouchCamera.cpp
+  src/vtkInteractorStyleRubberBand2D.cpp
+  src/vtkInteractorStyleRubberBand3D.cpp
+  src/vtkInteractorStyleRubberBandPick.cpp
+  src/vtkInteractorStyleRubberBandZoom.cpp
+  src/vtkInteractorStyleSwitch.cpp
+  src/vtkInteractorStyleSwitchBase.cpp
+  src/vtkInteractorStyleTerrain.cpp
+  src/vtkInteractorStyleTrackballActor.cpp
+  src/vtkInteractorStyleTrackballCamera.cpp
+  src/vtkInteractorStyleUnicam.cpp
+  src/vtkInteractorStyleUser.cpp
   src/vtkInterpolateDataSetAttributes.cpp
   src/vtkInterpolatingSubdivisionFilter.cpp
   src/vtkIntersectionPolyDataFilter.cpp
   src/vtkInvoker.cpp
   src/vtkIterativeClosestPointTransform.cpp
+  src/vtkJPEGReader.cpp
+  src/vtkJPEGWriter.cpp
+  src/vtkJSONImageWriter.cpp
   src/vtkJavaScriptDataWriter.cpp
   src/vtkJoinTables.cpp
+  src/vtkJoystickFly.cpp
+  src/vtkJoystickFlyIn.cpp
+  src/vtkJoystickFlyOut.cpp
   src/vtkJumpAndWalkCellLocator.cpp
   src/vtkKdNode.cpp
   src/vtkKdTree.cpp
   src/vtkKdTreePointLocator.cpp
+  src/vtkLODActor.cpp
+  src/vtkLODProp3D.cpp
   src/vtkLZ4DataCompressor.cpp
   src/vtkLZMADataCompressor.cpp
+  src/vtkLabelHierarchy.cpp
+  src/vtkLabelHierarchyAlgorithm.cpp
+  src/vtkLabelHierarchyCompositeIterator.cpp
+  src/vtkLabelHierarchyIterator.cpp
+  src/vtkLabelPlacementMapper.cpp
+  src/vtkLabelRenderStrategy.cpp
+  src/vtkLabelSizeCalculator.cpp
+  src/vtkLabeledContourMapper.cpp
+  src/vtkLabeledContourPolyDataItem.cpp
+  src/vtkLabeledDataMapper.cpp
+  src/vtkLabeledTreeMapDataMapper.cpp
   src/vtkLagrangeCurve.cpp
   src/vtkLagrangeHexahedron.cpp
   src/vtkLagrangeInterpolation.cpp
@@ -608,42 +852,74 @@ add_library(rvtk_shim SHARED
   src/vtkLagrangeTriangle.cpp
   src/vtkLagrangeWedge.cpp
   src/vtkLandmarkTransform.cpp
+  src/vtkLeaderActor2D.cpp
   src/vtkLegacyCellGridReader.cpp
   src/vtkLegacyCellGridWriter.cpp
   src/vtkLegacyStatisticalModelReader.cpp
   src/vtkLegacyStatisticalModelWriter.cpp
+  src/vtkLegendBoxActor.cpp
+  src/vtkLegendScaleActor.cpp
   src/vtkLevelIdScalars.cpp
+  src/vtkLight.cpp
+  src/vtkLightActor.cpp
+  src/vtkLightCollection.cpp
+  src/vtkLightKit.cpp
+  src/vtkLightRepresentation.cpp
+  src/vtkLightWidget.cpp
+  src/vtkLightingMapPass.cpp
+  src/vtkLightsPass.cpp
   src/vtkLine.cpp
+  src/vtkLineRepresentation.cpp
   src/vtkLineSource.cpp
+  src/vtkLineWidget.cpp
+  src/vtkLineWidget2.cpp
+  src/vtkLinearContourLineInterpolator.cpp
   src/vtkLinearToQuadraticCellsFilter.cpp
   src/vtkLinearTransform.cpp
   src/vtkLinkEdgels.cpp
   src/vtkLissajousPointCloud.cpp
   src/vtkLocator.cpp
+  src/vtkLogLookupTable.cpp
   src/vtkLogger.cpp
+  src/vtkLogoRepresentation.cpp
+  src/vtkLogoWidget.cpp
   src/vtkLongArray.cpp
   src/vtkLongLongArray.cpp
   src/vtkLookupTable.cpp
+  src/vtkLookupTableWithEnabling.cpp
   src/vtkLoopBooleanPolyDataFilter.cpp
   src/vtkMCubesReader.cpp
   src/vtkMCubesWriter.cpp
   src/vtkMFIXReader.cpp
+  src/vtkMRCReader.cpp
+  src/vtkMagnifierRepresentation.cpp
+  src/vtkMagnifierWidget.cpp
+  src/vtkMapArrayValues.cpp
+  src/vtkMapper.cpp
+  src/vtkMapper2D.cpp
+  src/vtkMapperCollection.cpp
   src/vtkMarchingContourFilter.cpp
   src/vtkMarchingCubes.cpp
   src/vtkMarchingSquares.cpp
   src/vtkMarkBoundaryFilter.cpp
+  src/vtkMarkerUtilities.cpp
   src/vtkMarshalContext.cpp
   src/vtkMaskFields.cpp
   src/vtkMaskPoints.cpp
   src/vtkMaskPolyData.cpp
   src/vtkMassProperties.cpp
   src/vtkMath.cpp
+  src/vtkMathTextFreeTypeTextRenderer.cpp
+  src/vtkMathTextUtilities.cpp
   src/vtkMatricizeArray.cpp
   src/vtkMatrix3x3.cpp
   src/vtkMatrix4x4.cpp
   src/vtkMatrixToHomogeneousTransform.cpp
   src/vtkMatrixToLinearTransform.cpp
   src/vtkMeanValueCoordinatesInterpolator.cpp
+  src/vtkMeasurementCubeHandleRepresentation3D.cpp
+  src/vtkMedicalImageProperties.cpp
+  src/vtkMedicalImageReader2.cpp
   src/vtkMemoryResourceStream.cpp
   src/vtkMergeArrays.cpp
   src/vtkMergeCells.cpp
@@ -654,6 +930,8 @@ add_library(rvtk_shim SHARED
   src/vtkMergeTimeFilter.cpp
   src/vtkMergeVectorComponents.cpp
   src/vtkMersenneTwister.cpp
+  src/vtkMetaImageReader.cpp
+  src/vtkMetaImageWriter.cpp
   src/vtkMinimalStandardRandomSequence.cpp
   src/vtkMolecule.cpp
   src/vtkMoleculeAlgorithm.cpp
@@ -662,37 +940,124 @@ add_library(rvtk_shim SHARED
   src/vtkMultiBlockDataSet.cpp
   src/vtkMultiBlockDataSetAlgorithm.cpp
   src/vtkMultiBlockMergeFilter.cpp
+  src/vtkMultiBlockUnstructuredGridVolumeMapper.cpp
+  src/vtkMultiBlockVolumeMapper.cpp
+  src/vtkMultiLineRepresentation.cpp
+  src/vtkMultiLineWidget.cpp
   src/vtkMultiObjectMassProperties.cpp
   src/vtkMultiPieceDataSet.cpp
   src/vtkMultiThreader.cpp
   src/vtkMultiThreshold.cpp
   src/vtkMultiTimeStepAlgorithm.cpp
+  src/vtkMultiVolume.cpp
   src/vtkMutableDirectedGraph.cpp
   src/vtkMutableUndirectedGraph.cpp
+  src/vtkNIFTIImageHeader.cpp
+  src/vtkNIFTIImageReader.cpp
+  src/vtkNIFTIImageWriter.cpp
   src/vtkNamedColors.cpp
   src/vtkNonLinearCell.cpp
   src/vtkNonMergingPointLocator.cpp
   src/vtkNonOverlappingAMR.cpp
   src/vtkNonOverlappingAMRAlgorithm.cpp
   src/vtkNormalizeMatrixVectors.cpp
+  src/vtkNrrdReader.cpp
   src/vtkOBBDicer.cpp
   src/vtkOBBTree.cpp
   src/vtkOBJReader.cpp
   src/vtkOBJWriter.cpp
   src/vtkOFFReader.cpp
+  src/vtkOMETIFFReader.cpp
+  src/vtkOSOpenGLRenderWindow.cpp
+  src/vtkOSPRayVolumeInterface.cpp
   src/vtkObject.cpp
   src/vtkObjectBase.cpp
   src/vtkObjectFactory.cpp
   src/vtkObjectFactoryCollection.cpp
+  src/vtkObserverMediator.cpp
   src/vtkOctreePointLocator.cpp
   src/vtkOctreePointLocatorNode.cpp
-  src/vtkOldStyleCallbackCommand.cpp
+  src/vtkOpaquePass.cpp
   src/vtkOpenFOAMReader.cpp
+  src/vtkOpenGLActor.cpp
+  src/vtkOpenGLArrayTextureBufferCache.cpp
+  src/vtkOpenGLBatchedLabeledDataMapper.cpp
+  src/vtkOpenGLBatchedPolyDataMapper.cpp
+  src/vtkOpenGLBillboardTextActor3D.cpp
+  src/vtkOpenGLBufferObject.cpp
+  src/vtkOpenGLCamera.cpp
+  src/vtkOpenGLCellGridMapper.cpp
+  src/vtkOpenGLCellToVTKCellMap.cpp
+  src/vtkOpenGLCompositePolyDataMapperDelegator.cpp
+  src/vtkOpenGLContextActor.cpp
+  src/vtkOpenGLContextBufferId.cpp
+  src/vtkOpenGLContextDevice2D.cpp
+  src/vtkOpenGLContextDevice3D.cpp
+  src/vtkOpenGLES30PolyDataMapper2D.cpp
+  src/vtkOpenGLFXAAFilter.cpp
+  src/vtkOpenGLFXAAPass.cpp
+  src/vtkOpenGLFluidMapper.cpp
+  src/vtkOpenGLFramebufferObject.cpp
+  src/vtkOpenGLGL2PSHelper.cpp
+  src/vtkOpenGLGPUVolumeRayCastMapper.cpp
+  src/vtkOpenGLGlyph3DHelper.cpp
+  src/vtkOpenGLGlyph3DMapper.cpp
+  src/vtkOpenGLHardwareSelector.cpp
+  src/vtkOpenGLHyperTreeGridMapper.cpp
+  src/vtkOpenGLImageAlgorithmHelper.cpp
+  src/vtkOpenGLImageMapper.cpp
+  src/vtkOpenGLImageSliceMapper.cpp
+  src/vtkOpenGLIndexBufferObject.cpp
+  src/vtkOpenGLInstanceCulling.cpp
+  src/vtkOpenGLLabeledContourMapper.cpp
+  src/vtkOpenGLLight.cpp
+  src/vtkOpenGLLowMemoryBatchedPolyDataMapper.cpp
+  src/vtkOpenGLLowMemoryPolyDataMapper.cpp
+  src/vtkOpenGLPointGaussianMapper.cpp
+  src/vtkOpenGLPolyDataMapper.cpp
+  src/vtkOpenGLPolyDataMapper2D.cpp
+  src/vtkOpenGLProjectedTetrahedraMapper.cpp
+  src/vtkOpenGLPropItem.cpp
+  src/vtkOpenGLProperty.cpp
+  src/vtkOpenGLRayCastImageDisplayHelper.cpp
+  src/vtkOpenGLRenderPass.cpp
+  src/vtkOpenGLRenderTimerLog.cpp
+  src/vtkOpenGLRenderUtilities.cpp
+  src/vtkOpenGLRenderWindow.cpp
+  src/vtkOpenGLRenderer.cpp
+  src/vtkOpenGLShaderCache.cpp
+  src/vtkOpenGLShaderProperty.cpp
+  src/vtkOpenGLSkybox.cpp
+  src/vtkOpenGLSphereMapper.cpp
+  src/vtkOpenGLState.cpp
+  src/vtkOpenGLStickMapper.cpp
+  src/vtkOpenGLSurfaceProbeVolumeMapper.cpp
+  src/vtkOpenGLTextActor.cpp
+  src/vtkOpenGLTextActor3D.cpp
+  src/vtkOpenGLTextMapper.cpp
+  src/vtkOpenGLTexture.cpp
+  src/vtkOpenGLTextureCPUNormalization.cpp
+  src/vtkOpenGLTextureComputeShaderNormalization.cpp
+  src/vtkOpenGLTextureFramebufferNormalization.cpp
+  src/vtkOpenGLTextureNormalizationHelper.cpp
+  src/vtkOpenGLUniforms.cpp
+  src/vtkOpenGLVertexArrayObject.cpp
+  src/vtkOpenGLVertexBufferObject.cpp
+  src/vtkOpenGLVertexBufferObjectCache.cpp
+  src/vtkOpenGLVertexBufferObjectGroup.cpp
+  src/vtkOrderIndependentTranslucentPass.cpp
   src/vtkOrderedTriangulator.cpp
   src/vtkOrientPolyData.cpp
+  src/vtkOrientationMarkerWidget.cpp
+  src/vtkOrientationRepresentation.cpp
+  src/vtkOrientationWidget.cpp
+  src/vtkOrientedGlyphContourRepresentation.cpp
+  src/vtkOrientedGlyphFocalPlaneContourRepresentation.cpp
+  src/vtkOrientedPolygonalHandleRepresentation3D.cpp
   src/vtkOutEdgeIterator.cpp
   src/vtkOutlineCornerFilter.cpp
   src/vtkOutlineCornerSource.cpp
+  src/vtkOutlineGlowPass.cpp
   src/vtkOutlineSource.cpp
   src/vtkOutputStream.cpp
   src/vtkOutputWindow.cpp
@@ -700,14 +1065,27 @@ add_library(rvtk_shim SHARED
   src/vtkOverlappingAMRAlgorithm.cpp
   src/vtkOverlappingAMRLevelIdScalars.cpp
   src/vtkOverlappingAMRMetaData.cpp
+  src/vtkOverlayPass.cpp
   src/vtkOverrideAttribute.cpp
   src/vtkOverrideInformation.cpp
   src/vtkOverrideInformationCollection.cpp
+  src/vtkPBRIrradianceTexture.cpp
+  src/vtkPBRLUTTexture.cpp
+  src/vtkPBRPrefilterTexture.cpp
   src/vtkPLYReader.cpp
   src/vtkPLYWriter.cpp
+  src/vtkPNGReader.cpp
+  src/vtkPNGWriter.cpp
+  src/vtkPNMReader.cpp
+  src/vtkPNMWriter.cpp
   src/vtkPTSReader.cpp
   src/vtkPackLabels.cpp
+  src/vtkPanoramicProjectionPass.cpp
+  src/vtkParallelCoordinatesActor.cpp
+  src/vtkParallelCoordinatesInteractorStyle.cpp
   src/vtkParallelReader.cpp
+  src/vtkParallelopipedRepresentation.cpp
+  src/vtkParallelopipedWidget.cpp
   src/vtkParametricFunctionSource.cpp
   src/vtkParticleReader.cpp
   src/vtkPartitionedDataSet.cpp
@@ -721,65 +1099,112 @@ add_library(rvtk_shim SHARED
   src/vtkPassSelectedArrays.cpp
   src/vtkPassThrough.cpp
   src/vtkPath.cpp
+  src/vtkPen.cpp
   src/vtkPentagonalPrism.cpp
   src/vtkPerlinNoise.cpp
   src/vtkPerspectiveTransform.cpp
+  src/vtkPicker.cpp
+  src/vtkPickingManager.cpp
+  src/vtkPieChartActor.cpp
   src/vtkPiecewiseFunction.cpp
   src/vtkPiecewiseFunctionAlgorithm.cpp
   src/vtkPiecewiseFunctionShiftScale.cpp
   src/vtkPixel.cpp
+  src/vtkPixelBufferObject.cpp
   src/vtkPlane.cpp
   src/vtkPlaneCollection.cpp
   src/vtkPlaneCutter.cpp
   src/vtkPlaneSource.cpp
+  src/vtkPlaneWidget.cpp
   src/vtkPlanes.cpp
   src/vtkPlanesIntersection.cpp
   src/vtkPlatonicSolidSource.cpp
+  src/vtkPlaybackRepresentation.cpp
+  src/vtkPlaybackWidget.cpp
+  src/vtkPointCloudRepresentation.cpp
+  src/vtkPointCloudWidget.cpp
   src/vtkPointConnectivityFilter.cpp
   src/vtkPointData.cpp
   src/vtkPointDataToCellData.cpp
+  src/vtkPointFillPass.cpp
+  src/vtkPointGaussianMapper.cpp
+  src/vtkPointHandleRepresentation2D.cpp
+  src/vtkPointHandleRepresentation3D.cpp
   src/vtkPointHandleSource.cpp
   src/vtkPointLoad.cpp
   src/vtkPointLocator.cpp
+  src/vtkPointPicker.cpp
+  src/vtkPointPlacer.cpp
   src/vtkPointSet.cpp
   src/vtkPointSetAlgorithm.cpp
   src/vtkPointSetCellIterator.cpp
+  src/vtkPointSetToLabelHierarchy.cpp
   src/vtkPointSource.cpp
+  src/vtkPointWidget.cpp
   src/vtkPoints.cpp
   src/vtkPoints2D.cpp
   src/vtkPointsMatchingTransformFilter.cpp
   src/vtkPointsProjectedHull.cpp
+  src/vtkPolarAxesActor.cpp
+  src/vtkPolarAxesActor2D.cpp
   src/vtkPolyData.cpp
   src/vtkPolyDataAlgorithm.cpp
   src/vtkPolyDataCollection.cpp
   src/vtkPolyDataConnectivityFilter.cpp
+  src/vtkPolyDataContourLineInterpolator.cpp
   src/vtkPolyDataEdgeConnectivityFilter.cpp
+  src/vtkPolyDataItem.cpp
+  src/vtkPolyDataMapper.cpp
+  src/vtkPolyDataMapper2D.cpp
   src/vtkPolyDataMaterial.cpp
   src/vtkPolyDataNormals.cpp
   src/vtkPolyDataPlaneClipper.cpp
   src/vtkPolyDataPlaneCutter.cpp
+  src/vtkPolyDataPointPlacer.cpp
   src/vtkPolyDataReader.cpp
+  src/vtkPolyDataSourceWidget.cpp
   src/vtkPolyDataStreamer.cpp
   src/vtkPolyDataTangents.cpp
   src/vtkPolyDataToReebGraphFilter.cpp
   src/vtkPolyDataToUnstructuredGrid.cpp
   src/vtkPolyDataWriter.cpp
   src/vtkPolyLine.cpp
+  src/vtkPolyLineRepresentation.cpp
   src/vtkPolyLineSource.cpp
+  src/vtkPolyLineWidget.cpp
   src/vtkPolyPlane.cpp
   src/vtkPolyPointSource.cpp
   src/vtkPolyVertex.cpp
   src/vtkPolygon.cpp
+  src/vtkPolygonalHandleRepresentation3D.cpp
+  src/vtkPolygonalSurfaceContourLineInterpolator.cpp
+  src/vtkPolygonalSurfacePointPlacer.cpp
   src/vtkPolyhedron.cpp
   src/vtkPolynomialSolversUnivariate.cpp
+  src/vtkPostScriptWriter.cpp
   src/vtkPriorityQueue.cpp
   src/vtkProStarReader.cpp
   src/vtkProbeFilter.cpp
   src/vtkProbePolyhedron.cpp
   src/vtkProgrammableDataObjectSource.cpp
   src/vtkProgrammableSource.cpp
+  src/vtkProgressBarRepresentation.cpp
+  src/vtkProgressBarWidget.cpp
   src/vtkProgressObserver.cpp
   src/vtkProjectSphereFilter.cpp
+  src/vtkProjectedTetrahedraMapper.cpp
+  src/vtkProp.cpp
+  src/vtkProp3D.cpp
+  src/vtkProp3DAxisFollower.cpp
+  src/vtkProp3DButtonRepresentation.cpp
+  src/vtkProp3DCollection.cpp
+  src/vtkProp3DFollower.cpp
+  src/vtkPropAssembly.cpp
+  src/vtkPropCollection.cpp
+  src/vtkPropItem.cpp
+  src/vtkPropPicker.cpp
+  src/vtkProperty.cpp
+  src/vtkProperty2D.cpp
   src/vtkPyramid.cpp
   src/vtkQuad.cpp
   src/vtkQuadraticEdge.cpp
@@ -799,12 +1224,16 @@ add_library(rvtk_shim SHARED
   src/vtkQuadric.cpp
   src/vtkQuadricClustering.cpp
   src/vtkQuadricDecimation.cpp
+  src/vtkQuadricLODActor.cpp
   src/vtkQuantizePolyDataPoints.cpp
   src/vtkQuaternionInterpolator.cpp
+  src/vtkRTAnalyticSource.cpp
+  src/vtkRadialGridActor2D.cpp
   src/vtkRandomAttributeGenerator.cpp
   src/vtkRandomHyperTreeGridSource.cpp
   src/vtkRandomPool.cpp
   src/vtkRandomSequence.cpp
+  src/vtkRayCastImageDisplayHelper.cpp
   src/vtkReaderAlgorithm.cpp
   src/vtkRearrangeFields.cpp
   src/vtkRecoverGeometryWireframe.cpp
@@ -819,7 +1248,10 @@ add_library(rvtk_shim SHARED
   src/vtkRectilinearGridToTetrahedra.cpp
   src/vtkRectilinearGridWriter.cpp
   src/vtkRectilinearSynchronizedTemplates.cpp
+  src/vtkRectilinearWipeRepresentation.cpp
+  src/vtkRectilinearWipeWidget.cpp
   src/vtkRecursiveDividingCubes.cpp
+  src/vtkRecursiveSphereDirectionEncoder.cpp
   src/vtkReebGraph.cpp
   src/vtkReebGraphSimplificationMetric.cpp
   src/vtkReferenceCount.cpp
@@ -828,8 +1260,34 @@ add_library(rvtk_shim SHARED
   src/vtkRemoveDuplicatePolys.cpp
   src/vtkRemovePolyData.cpp
   src/vtkRemoveUnusedPoints.cpp
+  src/vtkRenderMaterialLibrary.cpp
+  src/vtkRenderPass.cpp
+  src/vtkRenderPassCollection.cpp
+  src/vtkRenderStepsPass.cpp
+  src/vtkRenderTimerLog.cpp
+  src/vtkRenderWidget.cpp
+  src/vtkRenderWindow.cpp
+  src/vtkRenderWindowCollection.cpp
+  src/vtkRenderWindowInteractor.cpp
+  src/vtkRenderWindowInteractor3D.cpp
+  src/vtkRenderbuffer.cpp
+  src/vtkRenderedAreaPicker.cpp
+  src/vtkRenderer.cpp
+  src/vtkRendererCollection.cpp
+  src/vtkRendererDelegate.cpp
+  src/vtkRendererSource.cpp
+  src/vtkRenderingCellGrid.cpp
   src/vtkResampleToImage.cpp
   src/vtkResampleWithDataSet.cpp
+  src/vtkResizingWindowToImageFilter.cpp
+  src/vtkResliceCursor.cpp
+  src/vtkResliceCursorActor.cpp
+  src/vtkResliceCursorLineRepresentation.cpp
+  src/vtkResliceCursorPicker.cpp
+  src/vtkResliceCursorPolyDataAlgorithm.cpp
+  src/vtkResliceCursorRepresentation.cpp
+  src/vtkResliceCursorThickLineRepresentation.cpp
+  src/vtkResliceCursorWidget.cpp
   src/vtkResourceFileLocator.cpp
   src/vtkResourceStream.cpp
   src/vtkReverseSense.cpp
@@ -837,39 +1295,36 @@ add_library(rvtk_shim SHARED
   src/vtkRungeKutta2.cpp
   src/vtkRungeKutta4.cpp
   src/vtkRungeKutta45.cpp
+  src/vtkSEPReader.cpp
+  src/vtkSLCReader.cpp
   src/vtkSMPProgressObserver.cpp
-  src/vtkSOATypeFloat32Array.cpp
-  src/vtkSOATypeFloat64Array.cpp
-  src/vtkSOATypeInt16Array.cpp
-  src/vtkSOATypeInt32Array.cpp
-  src/vtkSOATypeInt64Array.cpp
-  src/vtkSOATypeInt8Array.cpp
-  src/vtkSOATypeUInt16Array.cpp
-  src/vtkSOATypeUInt32Array.cpp
-  src/vtkSOATypeUInt64Array.cpp
-  src/vtkSOATypeUInt8Array.cpp
+  src/vtkSSAAPass.cpp
+  src/vtkSSAOPass.cpp
   src/vtkSTLReader.cpp
   src/vtkSTLWriter.cpp
   src/vtkSampleFunction.cpp
   src/vtkSampleImplicitFunctionFilter.cpp
+  src/vtkScalarBarActor.cpp
+  src/vtkScalarBarRepresentation.cpp
+  src/vtkScalarBarWidget.cpp
   src/vtkScalarTree.cpp
   src/vtkScalarsToColors.cpp
-  src/vtkScaledSOATypeFloat32Array.cpp
-  src/vtkScaledSOATypeFloat64Array.cpp
-  src/vtkScaledSOATypeInt16Array.cpp
-  src/vtkScaledSOATypeInt32Array.cpp
-  src/vtkScaledSOATypeInt64Array.cpp
-  src/vtkScaledSOATypeInt8Array.cpp
-  src/vtkScaledSOATypeUInt16Array.cpp
-  src/vtkScaledSOATypeUInt32Array.cpp
-  src/vtkScaledSOATypeUInt64Array.cpp
-  src/vtkScaledSOATypeUInt8Array.cpp
+  src/vtkScenePicker.cpp
+  src/vtkSeedRepresentation.cpp
+  src/vtkSeedWidget.cpp
+  src/vtkSelectVisiblePoints.cpp
   src/vtkSelection.cpp
   src/vtkSelectionAlgorithm.cpp
   src/vtkSelectionNode.cpp
   src/vtkSelectionSource.cpp
+  src/vtkSequencePass.cpp
   src/vtkSerializer.cpp
   src/vtkServerSocket.cpp
+  src/vtkShader.cpp
+  src/vtkShaderProgram.cpp
+  src/vtkShaderProperty.cpp
+  src/vtkShadowMapBakerPass.cpp
+  src/vtkShadowMapPass.cpp
   src/vtkShepardMethod.cpp
   src/vtkShortArray.cpp
   src/vtkShrinkFilter.cpp
@@ -878,13 +1333,21 @@ add_library(rvtk_shim SHARED
   src/vtkSimpleCellTessellator.cpp
   src/vtkSimpleElevationFilter.cpp
   src/vtkSimpleImageToImageFilter.cpp
+  src/vtkSimpleMotionBlurPass.cpp
   src/vtkSimplePointsReader.cpp
   src/vtkSimplePointsWriter.cpp
   src/vtkSimpleReader.cpp
   src/vtkSimpleScalarTree.cpp
+  src/vtkSkybox.cpp
   src/vtkSliceCubes.cpp
+  src/vtkSliderRepresentation.cpp
+  src/vtkSliderRepresentation2D.cpp
+  src/vtkSliderRepresentation3D.cpp
+  src/vtkSliderWidget.cpp
+  src/vtkSmartVolumeMapper.cpp
   src/vtkSmoothErrorMetric.cpp
   src/vtkSmoothPolyDataFilter.cpp
+  src/vtkSobelGradientMagnitudePass.cpp
   src/vtkSocket.cpp
   src/vtkSocketCollection.cpp
   src/vtkSortDataArray.cpp
@@ -895,15 +1358,24 @@ add_library(rvtk_shim SHARED
   src/vtkSpatioTemporalHarmonicsAttribute.cpp
   src/vtkSpatioTemporalHarmonicsSource.cpp
   src/vtkSphere.cpp
+  src/vtkSphereHandleRepresentation.cpp
+  src/vtkSphereRepresentation.cpp
   src/vtkSphereSource.cpp
   src/vtkSphereTree.cpp
   src/vtkSphereTreeFilter.cpp
+  src/vtkSphereWidget.cpp
+  src/vtkSphereWidget2.cpp
   src/vtkSpheres.cpp
+  src/vtkSphericalDirectionEncoder.cpp
   src/vtkSphericalHarmonics.cpp
   src/vtkSphericalPointIterator.cpp
   src/vtkSphericalTransform.cpp
+  src/vtkSpiderPlotActor.cpp
   src/vtkSpline.cpp
   src/vtkSplineFilter.cpp
+  src/vtkSplineRepresentation.cpp
+  src/vtkSplineWidget.cpp
+  src/vtkSplineWidget2.cpp
   src/vtkSplitByCellScalarFilter.cpp
   src/vtkSplitColumnComponents.cpp
   src/vtkSplitField.cpp
@@ -915,31 +1387,13 @@ add_library(rvtk_shim SHARED
   src/vtkStaticPointLocator.cpp
   src/vtkStaticPointLocator2D.cpp
   src/vtkStatisticalModel.cpp
-  src/vtkStdFunctionTypeFloat32Array.cpp
-  src/vtkStdFunctionTypeFloat64Array.cpp
-  src/vtkStdFunctionTypeInt16Array.cpp
-  src/vtkStdFunctionTypeInt32Array.cpp
-  src/vtkStdFunctionTypeInt64Array.cpp
-  src/vtkStdFunctionTypeInt8Array.cpp
-  src/vtkStdFunctionTypeUInt16Array.cpp
-  src/vtkStdFunctionTypeUInt32Array.cpp
-  src/vtkStdFunctionTypeUInt64Array.cpp
-  src/vtkStdFunctionTypeUInt8Array.cpp
+  src/vtkStereoCompositor.cpp
   src/vtkStreamerBase.cpp
   src/vtkStreamingDemandDrivenPipeline.cpp
   src/vtkStreamingTessellator.cpp
-  src/vtkStridedTypeFloat32Array.cpp
-  src/vtkStridedTypeFloat64Array.cpp
-  src/vtkStridedTypeInt16Array.cpp
-  src/vtkStridedTypeInt32Array.cpp
-  src/vtkStridedTypeInt64Array.cpp
-  src/vtkStridedTypeInt8Array.cpp
-  src/vtkStridedTypeUInt16Array.cpp
-  src/vtkStridedTypeUInt32Array.cpp
-  src/vtkStridedTypeUInt64Array.cpp
-  src/vtkStridedTypeUInt8Array.cpp
   src/vtkStringArray.cpp
   src/vtkStringOutputWindow.cpp
+  src/vtkStringToImage.cpp
   src/vtkStripper.cpp
   src/vtkStructuredAMRGridConnectivity.cpp
   src/vtkStructuredCellArray.cpp
@@ -956,16 +1410,6 @@ add_library(rvtk_shim SHARED
   src/vtkStructuredGridPartitioner.cpp
   src/vtkStructuredGridReader.cpp
   src/vtkStructuredGridWriter.cpp
-  src/vtkStructuredPointTypeFloat32Array.cpp
-  src/vtkStructuredPointTypeFloat64Array.cpp
-  src/vtkStructuredPointTypeInt16Array.cpp
-  src/vtkStructuredPointTypeInt32Array.cpp
-  src/vtkStructuredPointTypeInt64Array.cpp
-  src/vtkStructuredPointTypeInt8Array.cpp
-  src/vtkStructuredPointTypeUInt16Array.cpp
-  src/vtkStructuredPointTypeUInt32Array.cpp
-  src/vtkStructuredPointTypeUInt64Array.cpp
-  src/vtkStructuredPointTypeUInt8Array.cpp
   src/vtkStructuredPoints.cpp
   src/vtkStructuredPointsCollection.cpp
   src/vtkStructuredPointsGeometryFilter.cpp
@@ -984,6 +1428,12 @@ add_library(rvtk_shim SHARED
   src/vtkSynchronizedTemplates2D.cpp
   src/vtkSynchronizedTemplates3D.cpp
   src/vtkSynchronizedTemplatesCutter3D.cpp
+  src/vtkTDxInteractorStyle.cpp
+  src/vtkTDxInteractorStyleCamera.cpp
+  src/vtkTDxInteractorStyleSettings.cpp
+  src/vtkTGAReader.cpp
+  src/vtkTIFFReader.cpp
+  src/vtkTIFFWriter.cpp
   src/vtkTable.cpp
   src/vtkTableAlgorithm.cpp
   src/vtkTableBasedClipDataSet.cpp
@@ -991,17 +1441,39 @@ add_library(rvtk_shim SHARED
   src/vtkTableReader.cpp
   src/vtkTableToPolyData.cpp
   src/vtkTableToStructuredGrid.cpp
+  src/vtkTableTopRotate.cpp
   src/vtkTableWriter.cpp
   src/vtkTecplotReader.cpp
   src/vtkTemporalPathLineFilter.cpp
   src/vtkTemporalStatistics.cpp
   src/vtkTensorGlyph.cpp
+  src/vtkTensorProbeRepresentation.cpp
+  src/vtkTensorProbeWidget.cpp
+  src/vtkTensorRepresentation.cpp
+  src/vtkTensorWidget.cpp
+  src/vtkTerrainContourLineInterpolator.cpp
+  src/vtkTerrainDataPointPlacer.cpp
   src/vtkTessellatedBoxSource.cpp
   src/vtkTessellatorFilter.cpp
   src/vtkTetra.cpp
+  src/vtkTextActor.cpp
+  src/vtkTextActor3D.cpp
   src/vtkTextCodec.cpp
   src/vtkTextCodecFactory.cpp
+  src/vtkTextMapper.cpp
+  src/vtkTextProperty.cpp
+  src/vtkTextPropertyCollection.cpp
+  src/vtkTextRenderer.cpp
+  src/vtkTextRendererStringToImage.cpp
+  src/vtkTextRepresentation.cpp
   src/vtkTextSource.cpp
+  src/vtkTextWidget.cpp
+  src/vtkTexture.cpp
+  src/vtkTextureObject.cpp
+  src/vtkTextureUnitManager.cpp
+  src/vtkTexturedActor2D.cpp
+  src/vtkTexturedButtonRepresentation.cpp
+  src/vtkTexturedButtonRepresentation2D.cpp
   src/vtkTexturedSphereSource.cpp
   src/vtkThinPlateSplineTransform.cpp
   src/vtkThreadedCompositeDataPipeline.cpp
@@ -1013,11 +1485,24 @@ add_library(rvtk_shim SHARED
   src/vtkTimeRange.cpp
   src/vtkTimeSourceExample.cpp
   src/vtkTimerLog.cpp
+  src/vtkToneMappingPass.cpp
+  src/vtkTooltipItem.cpp
+  src/vtkTrackballEnvironmentRotate.cpp
+  src/vtkTrackballMoveActor.cpp
+  src/vtkTrackballMultiRotate.cpp
+  src/vtkTrackballPan.cpp
+  src/vtkTrackballRoll.cpp
+  src/vtkTrackballRotate.cpp
+  src/vtkTrackballZoom.cpp
+  src/vtkTrackballZoomToMouse.cpp
   src/vtkTransform.cpp
   src/vtkTransform2D.cpp
   src/vtkTransformCollection.cpp
+  src/vtkTransformCoordinateSystems.cpp
+  src/vtkTransformFeedback.cpp
   src/vtkTransformFilter.cpp
-  src/vtkTransformPolyDataFilter.cpp
+  src/vtkTransformInterpolator.cpp
+  src/vtkTranslucentPass.cpp
   src/vtkTransposeTable.cpp
   src/vtkTree.cpp
   src/vtkTreeAlgorithm.cpp
@@ -1037,6 +1522,7 @@ add_library(rvtk_shim SHARED
   src/vtkTrivialProducer.cpp
   src/vtkTubeBender.cpp
   src/vtkTubeFilter.cpp
+  src/vtkTupleInterpolator.cpp
   src/vtkTypeFloat32Array.cpp
   src/vtkTypeFloat64Array.cpp
   src/vtkTypeInt16Array.cpp
@@ -1057,11 +1543,11 @@ add_library(rvtk_shim SHARED
   src/vtkUniformGrid.cpp
   src/vtkUniformGridAMR.cpp
   src/vtkUniformGridAMRAlgorithm.cpp
-  src/vtkUniformGridAMRDataIterator.cpp
   src/vtkUniformGridAMRIterator.cpp
   src/vtkUniformGridPartitioner.cpp
   src/vtkUniformHyperTreeGrid.cpp
   src/vtkUniformHyperTreeGridSource.cpp
+  src/vtkUniforms.cpp
   src/vtkUnsignedCharArray.cpp
   src/vtkUnsignedIntArray.cpp
   src/vtkUnsignedLongArray.cpp
@@ -1071,22 +1557,47 @@ add_library(rvtk_shim SHARED
   src/vtkUnstructuredGridAlgorithm.cpp
   src/vtkUnstructuredGridBase.cpp
   src/vtkUnstructuredGridBaseAlgorithm.cpp
+  src/vtkUnstructuredGridBunykRayCastFunction.cpp
   src/vtkUnstructuredGridCellIterator.cpp
   src/vtkUnstructuredGridGeometryFilter.cpp
+  src/vtkUnstructuredGridHomogeneousRayIntegrator.cpp
+  src/vtkUnstructuredGridLinearRayIntegrator.cpp
+  src/vtkUnstructuredGridPartialPreIntegration.cpp
+  src/vtkUnstructuredGridPreIntegration.cpp
   src/vtkUnstructuredGridQuadricDecimation.cpp
   src/vtkUnstructuredGridReader.cpp
   src/vtkUnstructuredGridToExplicitStructuredGrid.cpp
+  src/vtkUnstructuredGridVolumeMapper.cpp
+  src/vtkUnstructuredGridVolumeRayCastFunction.cpp
+  src/vtkUnstructuredGridVolumeRayCastIterator.cpp
+  src/vtkUnstructuredGridVolumeRayCastMapper.cpp
+  src/vtkUnstructuredGridVolumeRayIntegrator.cpp
+  src/vtkUnstructuredGridVolumeZSweepMapper.cpp
   src/vtkUnstructuredGridWriter.cpp
+  src/vtkValuePass.cpp
   src/vtkVariantArray.cpp
   src/vtkVectorDot.cpp
   src/vtkVectorNorm.cpp
+  src/vtkVectorText.cpp
   src/vtkVersion.cpp
   src/vtkVertex.cpp
   src/vtkVertexGlyphFilter.cpp
   src/vtkVertexListIterator.cpp
-  src/vtkVoidArray.cpp
+  src/vtkViewDependentErrorMetric.cpp
+  src/vtkViewport.cpp
+  src/vtkVisibilitySort.cpp
+  src/vtkVolume.cpp
+  src/vtkVolume16Reader.cpp
+  src/vtkVolumeCollection.cpp
   src/vtkVolumeContourSpectrumFilter.cpp
-  src/vtkVoronoi2D.cpp
+  src/vtkVolumeMapper.cpp
+  src/vtkVolumeOutlineSource.cpp
+  src/vtkVolumePicker.cpp
+  src/vtkVolumeProperty.cpp
+  src/vtkVolumeRayCastSpaceLeapingImageFilter.cpp
+  src/vtkVolumeReader.cpp
+  src/vtkVolumeTexture.cpp
+  src/vtkVolumetricPass.cpp
   src/vtkVoxel.cpp
   src/vtkVoxelContoursToSurfaceFilter.cpp
   src/vtkVoxelModeller.cpp
@@ -1097,12 +1608,22 @@ add_library(rvtk_shim SHARED
   src/vtkWarpVector.cpp
   src/vtkWeakReference.cpp
   src/vtkWedge.cpp
+  src/vtkWidgetCallbackMapper.cpp
+  src/vtkWidgetEvent.cpp
+  src/vtkWidgetEventTranslator.cpp
+  src/vtkWidgetRepresentation.cpp
+  src/vtkWidgetSet.cpp
   src/vtkWindBladeReader.cpp
   src/vtkWindow.cpp
+  src/vtkWindowLevelLookupTable.cpp
+  src/vtkWindowToImageFilter.cpp
   src/vtkWindowedSincPolyDataFilter.cpp
+  src/vtkWorldPointPicker.cpp
   src/vtkWriter.cpp
   src/vtkXMLDataElement.cpp
   src/vtkXMLFileOutputWindow.cpp
+  src/vtkXYPlotActor.cpp
+  src/vtkXYPlotWidget.cpp
   src/vtkYoungsMaterialInterface.cpp
   src/vtkZLibDataCompressor.cpp
 )
@@ -1111,9 +1632,9 @@ target_include_directories(rvtk_shim PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/suppor
 target_link_libraries(rvtk_shim PRIVATE ${VTK_LIBRARIES})
 vtk_module_autoinit(TARGETS rvtk_shim MODULES ${VTK_LIBRARIES})
 
-set_target_properties(rvtk_shim PROPERTIES
-  BUILD_WITH_INSTALL_RPATH TRUE
-  INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib"
-)
+# The link line of this throw-away executable is what `rvtk-sys/build.rs`
+# parses to find out which libraries and frameworks to hand to rustc.
+add_executable(rvtk_link_probe support/link_probe.cpp)
+target_link_libraries(rvtk_link_probe PRIVATE rvtk_shim)
 
 install(TARGETS rvtk_shim LIBRARY DESTINATION lib ARCHIVE DESTINATION lib RUNTIME DESTINATION bin)

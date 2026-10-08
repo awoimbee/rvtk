@@ -2,6 +2,7 @@
 #include "rvtk_shim.h"
 #include "vtkGLTFTexture.h"
 #include "vtkObjectBase.h"
+#include "vtkTexture.h"
 #include <string>
 
 extern "C" void* vtkGLTFTexture__rvtk_new() { return static_cast<void*>(vtkGLTFTexture::New()); }
@@ -26,5 +27,10 @@ extern "C" int64_t vtkGLTFTexture__GetNumberOfGenerationsFromBaseType__0(const c
 extern "C" int64_t vtkGLTFTexture__GetNumberOfGenerationsFromBase__0(void* self, const char* type_) {
   (void)self;
   return static_cast<vtkGLTFTexture*>(self)->GetNumberOfGenerationsFromBase(type_);
+}
+
+extern "C" void* vtkGLTFTexture__GetVTKTexture__0(void* self) {
+  (void)self;
+  return static_cast<void*>((static_cast<vtkGLTFTexture*>(self)->GetVTKTexture()).GetPointer());
 }
 

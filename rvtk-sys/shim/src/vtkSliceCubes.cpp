@@ -2,6 +2,7 @@
 #include "rvtk_shim.h"
 #include "vtkSliceCubes.h"
 #include "vtkObjectBase.h"
+#include "vtkVolumeReader.h"
 #include <string>
 
 extern "C" void* vtkSliceCubes__rvtk_new() { return static_cast<void*>(vtkSliceCubes::New()); }
@@ -36,6 +37,16 @@ extern "C" void vtkSliceCubes__Write__0(void* self) {
 extern "C" void vtkSliceCubes__Update__0(void* self) {
   (void)self;
   static_cast<vtkSliceCubes*>(self)->Update();
+}
+
+extern "C" void vtkSliceCubes__SetReader__0(void* self, void* arg0) {
+  (void)self;
+  static_cast<vtkSliceCubes*>(self)->SetReader(static_cast<vtkVolumeReader*>(arg0));
+}
+
+extern "C" void* vtkSliceCubes__GetReader__0(void* self) {
+  (void)self;
+  return static_cast<void*>(static_cast<vtkSliceCubes*>(self)->GetReader());
 }
 
 extern "C" void vtkSliceCubes__SetFileName__0(void* self, const char* _arg) {

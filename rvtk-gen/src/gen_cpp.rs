@@ -147,7 +147,10 @@ pub fn emit_cmake(api: &Api, generated: &[(String, Vec<String>)]) -> String {
         let _ = writeln!(out, "  {m}");
     }
     let _ = writeln!(out, ")\n");
-    let _ = writeln!(out, "add_library(rvtk_shim SHARED");
+    // VTK is linked statically (see `rvtk-sys/build.rs`), so the shim is a
+    // static archive too: rustc links it, and everything it needs, into the
+    // final binary.
+    let _ = writeln!(out, "add_library(rvtk_shim STATIC");
     let _ = writeln!(out, "  support/rvtk_shim.cpp");
     for (_class, _) in generated {
         let _ = writeln!(out, "  src/{_class}.cpp");
@@ -165,18 +168,17 @@ pub fn emit_cmake(api: &Api, generated: &[(String, Vec<String>)]) -> String {
         out,
         "vtk_module_autoinit(TARGETS rvtk_shim MODULES ${{VTK_LIBRARIES}})\n"
     );
-    // Install so that build.rs can link against a stable path.  The install
-    // name is absolute on purpose: a dependency's `rustc-link-arg` does not
-    // reach the final binary, so an @rpath based name would only resolve when
-    // the binary is launched through cargo (which injects the native search
-    // paths it collected from build scripts).
-    let _ = writeln!(out, "set_target_properties(rvtk_shim PROPERTIES");
-    let _ = writeln!(out, "  BUILD_WITH_INSTALL_RPATH TRUE");
-    let _ = writeln!(
-        out,
-        "  INSTALL_NAME_DIR \"${{CMAKE_INSTALL_PREFIX}}/lib\""
+    // `rvtk-sys/build.rs` reads this executable's link line to learn the whole
+    // set of static archives, system libraries and frameworks the shim needs.
+    // Building it also proves here that the static link works.
+    out.push_str(
+        r#"# The link line of this throw-away executable is what `rvtk-sys/build.rs`
+# parses to find out which libraries and frameworks to hand to rustc.
+add_executable(rvtk_link_probe support/link_probe.cpp)
+target_link_libraries(rvtk_link_probe PRIVATE rvtk_shim)
+
+"#,
     );
-    let _ = writeln!(out, ")\n");
     let _ = writeln!(out, "install(TARGETS rvtk_shim LIBRARY DESTINATION lib ARCHIVE DESTINATION lib RUNTIME DESTINATION bin)");
     out
 }
