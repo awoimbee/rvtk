@@ -343,6 +343,16 @@ nothing when the manifest has no `vtk*` features wraps everything VTK exposes.
   faithful `unsafe`-free wrapper of the C++ contract, not a guard rail.
 * A `pyvista`-style high level crate would be a good next step.
 
+## Related projects
+
+* [vtk-pure-rs](https://github.com/henriksson-lab/vtk-pure-rs) takes the
+  opposite approach to this crate.  Instead of binding VTK it is a ground-up
+  Rust reimplementation of VTK 9.6 (an LLM-mediated translation of the C++
+  source), with no C++ toolchain and no system VTK involved.  It is
+  experimental and, by its own benchmarks, currently slower than the C++
+  original; in exchange it builds anywhere Cargo does, including to
+  WebAssembly, which is exactly what an FFI binding like this one cannot do.
+
 ## Acknowledgements
 
 * [VTK](https://vtk.org/) and its wrapping tools.
