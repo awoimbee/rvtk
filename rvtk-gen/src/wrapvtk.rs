@@ -219,8 +219,8 @@ fn fetch_wrapvtk(dir: &Path, url: &str) -> Result<()> {
     }
 
     if dir.exists() {
-        let mut entries = std::fs::read_dir(dir)
-            .with_context(|| format!("reading {}", dir.display()))?;
+        let mut entries =
+            std::fs::read_dir(dir).with_context(|| format!("reading {}", dir.display()))?;
         if entries.next().is_some() {
             bail!(
                 "{} exists but does not look like a WrapVTK checkout (no \
@@ -252,17 +252,11 @@ fn write_cmake(dir: &Path) -> Result<()> {
     if std::fs::read_to_string(&path).is_ok_and(|current| current == WRAPVTK_CMAKE) {
         return Ok(());
     }
-    std::fs::write(&path, WRAPVTK_CMAKE)
-        .with_context(|| format!("writing {}", path.display()))?;
+    std::fs::write(&path, WRAPVTK_CMAKE).with_context(|| format!("writing {}", path.display()))?;
     Ok(())
 }
 
-fn build_wrapvtk(
-    dir: &Path,
-    vtk_dir: &Path,
-    modules: &[String],
-    jobs: Option<&str>,
-) -> Result<()> {
+fn build_wrapvtk(dir: &Path, vtk_dir: &Path, modules: &[String], jobs: Option<&str>) -> Result<()> {
     let build = dir.join("build");
 
     let mut configure = Command::new("cmake");
@@ -378,7 +372,10 @@ mod tests {
         let include_dir = base.join("include/vtk-9.7");
         std::fs::create_dir_all(&cmake_dir).unwrap();
         std::fs::create_dir_all(&include_dir).unwrap();
-        assert_eq!(vtk_include_dir(&cmake_dir).as_deref(), Some(include_dir.as_path()));
+        assert_eq!(
+            vtk_include_dir(&cmake_dir).as_deref(),
+            Some(include_dir.as_path())
+        );
         std::fs::remove_dir_all(&base).ok();
     }
 

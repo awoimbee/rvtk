@@ -1,0 +1,44 @@
+# pre-commit hooks for rvtk.
+#
+# Run by `prek` (https://github.com/j178/prek), a Rust reimplementation of
+# pre-commit that reads this same file:
+#
+#   prek install          # wire up the git hooks
+#   prek run --all-files  # run everything over the whole tree
+#
+# The generated code (`rvtk/src/generated*/`, `rvtk-sys/src/generated*/`,
+# `rvtk/tests/smoke*`, `rvtk-sys/shim/`) is not formatted or spell-checked: it
+# is emitted by `rvtk-gen` and reproduced verbatim on every regeneration, so
+# touching it would only create churn.  See each hook below for how it is kept
+# out of the way.
+repos:
+  # `cargo fmt`.  A local hook rather than a third-party repo: `cargo fmt` is
+  # the project's own toolchain, so there is nothing to pin.
+  #
+  # It formats the workspace from the crate roots.  That matters because
+  # rustfmt follows `mod x;` but *not* `include!`, and the generated module
+  # files are reached only through `include!` -- so they are left alone even
+  # though they live in the source tree.  Passing filenames instead (the
+  # default) would format them directly, which is why `pass_filenames` is off.
+  - repo: local
+    hooks:
+      - id: cargo-fmt
+        name: cargo fmt
+        entry: cargo fmt --all
+        language: system
+        types: [rust]
+        pass_filenames: false
+
+  # Spell checker.  `--force-exclude` makes the excludes in `.typos.toml` apply
+  # even to explicitly named files.
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.51.1
+    hooks:
+      - id: typos
+
+  # Static analysis for GitHub Actions.  Audits `.github/workflows/` (and this
+  # file, which is itself a workflow-adjacent config).
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.30.1
+    hooks:
+      - id: zizmor

@@ -87,7 +87,9 @@ fn capture(window: &vtkRenderWindow) -> vtkImageData {
     to_image.set_should_rerender(0);
     to_image.update();
 
-    let image = to_image.get_output().expect("window to image produced output");
+    let image = to_image
+        .get_output()
+        .expect("window to image produced output");
     // The filter keeps the output alive through the pipeline; take our own
     // reference so the image outlives `to_image`.
     vtkImageData::safe_down_cast(&image).expect("output is an image")
@@ -190,7 +192,11 @@ fn save_png(image: &vtkImageData, name: &str) -> PathBuf {
     writer.set_file_name(&path.to_string_lossy());
     writer.set_input_data(image);
     writer.write();
-    assert!(path.exists(), "vtkPNGWriter did not create {}", path.display());
+    assert!(
+        path.exists(),
+        "vtkPNGWriter did not create {}",
+        path.display()
+    );
     path
 }
 
@@ -206,7 +212,10 @@ fn empty_scene_is_a_uniform_background() {
         "an empty scene should be a single flat colour"
     );
     // Opaque.
-    assert!(reference.rgba.iter().all(|p| p[3] > 0.99), "alpha not opaque");
+    assert!(
+        reference.rgba.iter().all(|p| p[3] > 0.99),
+        "alpha not opaque"
+    );
 
     let bg = reference.at(0, 0);
     println!("      background = {bg:?}");
@@ -361,13 +370,28 @@ fn render_window_reports_a_backend() {
 
 fn main() -> ExitCode {
     let checks: &[(&str, fn())] = &[
-        ("empty_scene_is_a_uniform_background", empty_scene_is_a_uniform_background),
+        (
+            "empty_scene_is_a_uniform_background",
+            empty_scene_is_a_uniform_background,
+        ),
         ("renders_a_shaded_sphere", renders_a_shaded_sphere),
-        ("camera_orientation_changes_the_image", camera_orientation_changes_the_image),
-        ("actor_colour_is_visible_in_the_image", actor_colour_is_visible_in_the_image),
-        ("two_actors_paint_more_than_one", two_actors_paint_more_than_one),
+        (
+            "camera_orientation_changes_the_image",
+            camera_orientation_changes_the_image,
+        ),
+        (
+            "actor_colour_is_visible_in_the_image",
+            actor_colour_is_visible_in_the_image,
+        ),
+        (
+            "two_actors_paint_more_than_one",
+            two_actors_paint_more_than_one,
+        ),
         ("png_writer_emits_a_valid_png", png_writer_emits_a_valid_png),
-        ("render_window_reports_a_backend", render_window_reports_a_backend),
+        (
+            "render_window_reports_a_backend",
+            render_window_reports_a_backend,
+        ),
     ];
 
     println!("running {} rendering checks", checks.len());

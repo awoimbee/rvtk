@@ -167,9 +167,11 @@ fn main() -> Result<()> {
     // is super-linear in the number of gated items.
     let modules = &api.modules;
 
-    write_modules(&args.repo.join("rvtk-sys/src/generated"), modules, |module| {
-        gen_rust::emit_ffi_module(&api, module)
-    })?;
+    write_modules(
+        &args.repo.join("rvtk-sys/src/generated"),
+        modules,
+        |module| gen_rust::emit_ffi_module(&api, module),
+    )?;
     std::fs::write(
         args.repo.join("rvtk-sys/src/generated.rs"),
         gen_rust::emit_ffi_index(modules),

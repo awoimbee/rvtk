@@ -195,7 +195,11 @@ fn sha256(path: &Path) -> Result<String> {
         &["cmake", "-E", "sha256sum"],
     ];
     for command in commands {
-        let Ok(output) = Command::new(command[0]).args(&command[1..]).arg(path).output() else {
+        let Ok(output) = Command::new(command[0])
+            .args(&command[1..])
+            .arg(path)
+            .output()
+        else {
             continue;
         };
         if !output.status.success() {
@@ -267,7 +271,10 @@ fn prebuilt_vtk() -> Result<Option<Vtk>> {
         prefix.display()
     );
     let fingerprint = format!("prebuilt\n{}\n", prefix.display());
-    Ok(Some(Vtk { prefix, fingerprint }))
+    Ok(Some(Vtk {
+        prefix,
+        fingerprint,
+    }))
 }
 
 /// Validate a prebuilt install tree: it must be a VTK of the exact version the
@@ -330,19 +337,20 @@ fn vtk_flags(modules: &[String]) -> Vec<String> {
     .iter()
     .map(|flag| (*flag).to_owned())
     .collect();
-    flags.extend(
-        modules
-            .iter()
-            .map(|module| format!("VTK_MODULE_ENABLE_VTK_{}=YES", module.trim_start_matches("vtk"))),
-    );
+    flags.extend(modules.iter().map(|module| {
+        format!(
+            "VTK_MODULE_ENABLE_VTK_{}=YES",
+            module.trim_start_matches("vtk")
+        )
+    }));
     flags
 }
 
 /// The `lib/cmake/vtk-X.Y` directory of an installed VTK.
 fn vtk_cmake_dir(prefix: &Path) -> Result<PathBuf> {
     let base = prefix.join("lib/cmake");
-    let entries = fs::read_dir(&base)
-        .map_err(|error| format!("reading {}: {error}", base.display()))?;
+    let entries =
+        fs::read_dir(&base).map_err(|error| format!("reading {}: {error}", base.display()))?;
     let mut candidates: Vec<PathBuf> = entries
         .filter_map(|entry| entry.ok())
         .map(|entry| entry.path())

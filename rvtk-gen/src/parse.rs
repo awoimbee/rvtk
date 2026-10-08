@@ -460,7 +460,9 @@ fn is_wrapper_backend_shim(vtk_include: &Path, header: &str) -> bool {
     let Ok(text) = std::fs::read_to_string(vtk_include.join(header)) else {
         return false;
     };
-    BACKEND_INTERFACE_MACROS.iter().any(|mac| text.contains(mac))
+    BACKEND_INTERFACE_MACROS
+        .iter()
+        .any(|mac| text.contains(mac))
 }
 
 pub fn build_api(xml_dir: &Path, opts: &BuildOptions) -> Result<Api> {

@@ -211,6 +211,37 @@ module list (to drop the Cocoa classes) and a type-faithful mapping between
 `vtkIdType`/`vtkTypeInt64` and the C ABI — which is the next step if
 cross-platform support is wanted.
 
+### Pre-commit hooks
+
+`.pre-commit-config.yaml` runs three checks, via [prek](https://github.com/j178/prek)
+(a Rust implementation of pre-commit that reads the same file):
+
+| Hook | Checks |
+| ---- | ------ |
+| `cargo fmt` | Formatting, across the workspace. |
+| [`typos`](https://github.com/crate-ci/typos) | Spelling, in identifiers and comments. |
+| [`zizmor`](https://github.com/zizmorcore/zizmor) | The GitHub Actions workflow. |
+
+```sh
+prek install          # once, to wire up the git hook
+prek run --all-files  # everything, over the whole tree
+prek run              # just the staged files
+```
+
+The same three hooks run in CI as the `lint` job (`.github/workflows/ci.yml`),
+which needs no VTK and finishes in well under a minute, so it gates the
+multi-minute native build rather than running alongside it.  `cargo fmt` is a
+check there, not a fix: a pre-commit hook that reformats a file counts as a
+failure, so an unformatted PR is rejected.
+
+Generated code is deliberately out of scope for formatting and spelling: it is
+rewritten from scratch by `rvtk-gen` on regeneration, so touching it would only
+create churn.  `.typos.toml` excludes those paths, and the `cargo fmt` hook
+formats from the crate roots rather than passing filenames — rustfmt follows
+`mod x;` but not `include!`, and every generated file is reached through
+`include!`, so a workspace-wide `cargo fmt` leaves all ~470k generated lines
+alone.
+
 ## Design
 
 ### Reference counting

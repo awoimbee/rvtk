@@ -16,7 +16,10 @@ fn new_window() -> (vtkRenderWindow, vtkRenderer) {
     (window, renderer)
 }
 
-fn add_sphere(renderer: &vtkRenderer, radius: f64) -> (vtkSphereSource, vtkPolyDataMapper, vtkActor) {
+fn add_sphere(
+    renderer: &vtkRenderer,
+    radius: f64,
+) -> (vtkSphereSource, vtkPolyDataMapper, vtkActor) {
     let source = vtkSphereSource::new();
     source.set_radius(radius);
     source.set_theta_resolution(32);
@@ -57,7 +60,10 @@ fn capture(window: &vtkRenderWindow) -> Vec<[f32; 4]> {
 
 fn diff(a: &[[f32; 4]], b: &[[f32; 4]]) -> usize {
     let tol = 6.0 / 255.0;
-    a.iter().zip(b).filter(|(x, y)| (0..4).any(|c| (x[c] - y[c]).abs() > tol)).count()
+    a.iter()
+        .zip(b)
+        .filter(|(x, y)| (0..4).any(|c| (x[c] - y[c]).abs() > tol))
+        .count()
 }
 
 fn main() {
@@ -84,7 +90,10 @@ fn main() {
     println!("two vs one: {}", diff(&two, &one));
 
     // unique RGB in one
-    let mut cols: Vec<[u8; 3]> = one.iter().map(|p| [p[0] as u8, p[1] as u8, p[2] as u8]).collect();
+    let mut cols: Vec<[u8; 3]> = one
+        .iter()
+        .map(|p| [p[0] as u8, p[1] as u8, p[2] as u8])
+        .collect();
     cols.sort_unstable();
     cols.dedup();
     println!("unique RGB (raw cast) in one: {}", cols.len());

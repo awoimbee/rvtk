@@ -179,7 +179,10 @@ pub fn emit_cmake(api: &Api, _generated: &[(String, Vec<String>)]) -> String {
         let _ = writeln!(out, "  )");
         let _ = writeln!(out, "endif()");
     }
-    let _ = writeln!(out, "add_library(rvtk_shim STATIC ${{rvtk_shim_sources}})\n");
+    let _ = writeln!(
+        out,
+        "add_library(rvtk_shim STATIC ${{rvtk_shim_sources}})\n"
+    );
     let _ = writeln!(
         out,
         "target_include_directories(rvtk_shim PRIVATE \"${{CMAKE_CURRENT_SOURCE_DIR}}/support\")"

@@ -297,5 +297,9 @@ fn main() -> ExitCode {
     let checks = CHECKS.load(Ordering::Relaxed);
     let failures = FAILURES.load(Ordering::Relaxed);
     println!("\n{} checks, {} failures", checks, failures);
-    if failures == 0 { ExitCode::SUCCESS } else { ExitCode::FAILURE }
+    if failures == 0 {
+        ExitCode::SUCCESS
+    } else {
+        ExitCode::FAILURE
+    }
 }

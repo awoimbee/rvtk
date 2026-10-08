@@ -1,0 +1,30 @@
+# Configuration for `typos` (https://github.com/crate-ci/typos), run as a
+# pre-commit/prek hook.
+#
+# It spell-checks identifiers and comments, splitting them into words, which
+# makes it a good fit for hand-written code and a bad fit for the generated
+# bindings: those embed VTK's doxygen comments and thousands of upstream
+# identifiers verbatim, and are rewritten from scratch on every regeneration.
+# Everything under `[files] extend-exclude` is emitted by `rvtk-gen`.
+
+[files]
+extend-exclude = [
+  # Generated C++ shim and its CMake source list.
+  "rvtk-sys/shim/CMakeLists.txt",
+  "rvtk-sys/shim/src/",
+  # Generated FFI declarations, safe wrappers and smoke test (one file per
+  # VTK module, plus the include-list index next to each group).
+  "rvtk-sys/src/generated.rs",
+  "rvtk-sys/src/generated/",
+  "rvtk/src/generated.rs",
+  "rvtk/src/generated/",
+  "rvtk/tests/smoke.rs",
+  "rvtk/tests/smoke/",
+  # `Cargo.lock` is generated and full of upstream crate names.
+  "Cargo.lock",
+]
+
+[default]
+# `typos` splits `PNGs` into `PN` + `Gs` and corrects `PN` to `ON`.  Plain
+# `PNG` is fine; only the plural trips it.  Allow the whole family.
+extend-ignore-identifiers-re = ["(?i)pngs?"]
