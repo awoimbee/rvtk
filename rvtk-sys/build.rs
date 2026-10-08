@@ -436,7 +436,11 @@ fn is_module_name(word: &str) -> bool {
 /// lets CMake's own incremental build do the work: re-running the script with
 /// unchanged sources is a quick no-op instead of a multi-minute rebuild.
 fn build_shim(cache: &Path, vtk: &Vtk, manifest: &Path, modules: &[String]) -> Result<PathBuf> {
-    let out = cache.join("shim");
+    // One build tree per module set.  Switching features must not clobber the
+    // archive another feature set links against: Cargo does not always re-run
+    // this script when the feature set changes, so sharing one directory would
+    // let a cached unit link a shim built for different modules.
+    let out = cache.join(format!("shim-{}", module_key(modules)));
     // The configuration fingerprint decides whether an existing build tree can
     // be reused at all; the content hash decides whether it is up to date.  The
     // enabled modules are part of it, so switching features rebuilds the shim.
@@ -477,6 +481,19 @@ fn build_shim(cache: &Path, vtk: &Vtk, manifest: &Path, modules: &[String]) -> R
     fs::write(&config_file, &config)?;
     fs::write(&content_file, &content)?;
     Ok(out)
+}
+
+/// A stable short key for a set of modules, used to give each feature set its
+/// own shim build tree.  The input is sorted so ordering cannot change it.
+fn module_key(modules: &[String]) -> String {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    let mut sorted: Vec<&str> = modules.iter().map(String::as_str).collect();
+    sorted.sort_unstable();
+    let mut hasher = DefaultHasher::new();
+    sorted.hash(&mut hasher);
+    format!("{:08x}", hasher.finish() as u32)
 }
 
 /// A stable hash of every source file under `dir`, skipping build directories.

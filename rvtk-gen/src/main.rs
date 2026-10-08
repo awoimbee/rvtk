@@ -23,7 +23,7 @@ mod model;
 mod parse;
 mod wrapvtk;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use clap::Parser;
@@ -161,16 +161,58 @@ fn main() -> Result<()> {
     let cmake = gen_cpp::emit_cmake(&api, &generated);
     std::fs::write(shim.join("CMakeLists.txt"), cmake)?;
 
-    let ffi = gen_rust::emit_ffi(&api);
-    std::fs::write(args.repo.join("rvtk-sys/src/generated.rs"), ffi)?;
+    // One file per VTK module, plus an index that includes them behind their
+    // Cargo features.  Splitting the files, rather than gating every item with
+    // `#[cfg]`, is what keeps the generated code cheap to compile: rustc's cost
+    // is super-linear in the number of gated items.
+    let modules = &api.modules;
 
-    let wrappers = gen_rust::emit_wrappers(&api);
-    std::fs::write(args.repo.join("rvtk/src/generated.rs"), wrappers)?;
+    write_modules(&args.repo.join("rvtk-sys/src/generated"), modules, |module| {
+        gen_rust::emit_ffi_module(&api, module)
+    })?;
+    std::fs::write(
+        args.repo.join("rvtk-sys/src/generated.rs"),
+        gen_rust::emit_ffi_index(modules),
+    )?;
 
-    let smoke = gen_rust::emit_smoke_test(&api);
-    std::fs::write(args.repo.join("rvtk/tests/smoke.rs"), smoke)?;
+    write_modules(&args.repo.join("rvtk/src/generated"), modules, |module| {
+        gen_rust::emit_wrappers_module(&api, module)
+    })?;
+    std::fs::write(
+        args.repo.join("rvtk/src/generated.rs"),
+        gen_rust::emit_wrappers_index(modules),
+    )?;
+
+    write_modules(&args.repo.join("rvtk/tests/smoke"), modules, |module| {
+        gen_rust::emit_smoke_module(&api, module)
+    })?;
+    std::fs::write(
+        args.repo.join("rvtk/tests/smoke.rs"),
+        gen_rust::emit_smoke_index(modules),
+    )?;
 
     println!("{}", gen_rust::summary(&api));
+    Ok(())
+}
+
+/// Write one generated `.rs` file per module into `dir`, removing stale ones
+/// first so a module that is no longer wrapped does not linger.
+fn write_modules<F>(dir: &Path, modules: &[String], mut emit: F) -> Result<()>
+where
+    F: FnMut(&str) -> String,
+{
+    std::fs::create_dir_all(dir).with_context(|| format!("creating {}", dir.display()))?;
+    for entry in std::fs::read_dir(dir)?.filter_map(|e| e.ok()) {
+        let path = entry.path();
+        if path.extension().map(|e| e == "rs").unwrap_or(false) {
+            let _ = std::fs::remove_file(path);
+        }
+    }
+    for module in modules {
+        let path = dir.join(format!("{module}.rs"));
+        std::fs::write(&path, emit(module))
+            .with_context(|| format!("writing {}", path.display()))?;
+    }
     Ok(())
 }
 

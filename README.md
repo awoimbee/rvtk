@@ -11,8 +11,10 @@ it.  Higher level, `pyvista`-style helpers belong in a separate crate.
 * License: [BSD-3-Clause](LICENSE), the same license as VTK itself.
 * Wrapped today: the `Common*` modules plus `FiltersCore`, `FiltersSources`,
   `FiltersGeneral`, `FiltersGeometry`, `IOGeometry`, `IOCore`, `IOLegacy`,
-  `IOPLY` and `ImagingHybrid` — **1079 classes and ~21 300 methods**.
-* The module list is configurable; see [Regenerating the bindings](#regenerating-the-bindings).
+  `IOPLY` and `ImagingHybrid` — **1582 classes and ~35 600 methods**.
+* The module list is configurable, and a VTK module is only built if its Cargo
+  feature is enabled; see [Feature flags](#feature-flags) and
+  [Regenerating the bindings](#regenerating-the-bindings).
 
 ```rust
 use vtk::vtkSphereSource;
@@ -93,6 +95,43 @@ The first build is expensive; everything after it is incremental.
 
 Both the shim and VTK are static, so a built binary has no VTK shared library
 dependency at all.  Delete `target/rvtk-vtk/` to force a rebuild of VTK.
+
+### Feature flags
+
+VTK is a collection of ~160 static libraries, and building all of them is most
+of the build time.  Every wrapped module is therefore a Cargo feature named
+after it, and **only the enabled modules are compiled**: `rvtk-sys/build.rs`
+passes the enabled list to CMake, which builds just those VTK libraries and
+just those shim translation units.
+
+The default is deliberately small:
+
+| Default features | Pulls in |
+| ---------------- | -------- |
+| `vtkCommonCore` | the object model |
+| `vtkCommonDataModel` | datasets |
+| `vtkFiltersCore` | the core pipeline filters |
+
+Enabling a feature also enables the modules it depends on, so the closure of
+the three defaults is `vtkCommonCore`, `vtkCommonDataModel`,
+`vtkCommonExecutionModel`, `vtkCommonMath`, `vtkCommonMisc`, `vtkCommonSystem`,
+`vtkCommonTransforms` and `vtkFiltersCore` — eight VTK libraries instead of the
+~160 a full VTK builds.  Ask for more by name:
+
+```sh
+cargo build -p rvtk --features vtkFiltersSources,vtkRenderingCore
+```
+
+The features select both the VTK libraries that are built *and* the generated
+bindings that exist.  The generated code is split into one file per module
+(`rvtk/src/generated/<module>.rs`, and likewise for `rvtk-sys` and the smoke
+test); each file is `include!`d only when its feature is on, so a disabled
+module is never even parsed.
+
+> A `#[cfg(feature = "…")]` on every generated item would be far simpler, but
+> rustc's cost is super-linear in the number of gated items: ~9300 attributes
+> pushed a `cargo check -p rvtk` from ~2 s past 150 s.  File-level gating keeps
+> it at ~2 s.
 
 #### Build times
 
