@@ -62,7 +62,7 @@ per-class XML ──► vtk-wrap-gen ──┬─► vtk-wrap-sys/shim/**.cpp  �
 ```sh
 cargo build -p vtk-wrap-sys -p vtk-wrap
 cargo test  -p vtk-wrap
-cargo run   -p vtk-wrap --example sphere_source
+cargo run   -p vtk-wrap --example sphere_source --features vtkFiltersSources
 ```
 
 `vtk-wrap-sys/build.rs` builds VTK from source, statically, then configures

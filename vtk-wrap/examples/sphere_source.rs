@@ -3,7 +3,7 @@
 //! Run with:
 //!
 //! ```text
-//! cargo run -p vtk --example sphere_source
+//! cargo run -p vtk-wrap --example sphere_source --features vtkFiltersSources
 //! ```
 
 use vtk_wrap::vtkSphereSource;
