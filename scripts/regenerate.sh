@@ -4,13 +4,13 @@
 #
 #   ./scripts/regenerate.sh
 #
-# `rvtk-gen` does the actual work: it clones (or reuses) WrapVTK, builds
+# `vtk-wrap-gen` does the actual work: it clones (or reuses) WrapVTK, builds
 # `vtkWrapXML` against your VTK, generates the XML API description, and then
 # writes the C++ shim and the Rust crates.  This script is only a convenience
-# wrapper that builds `rvtk-gen` and forwards its environment.
+# wrapper that builds `vtk-wrap-gen` and forwards its environment.
 #
 # By default the module set comes from the `vtk*` features in
-# `rvtk-sys/Cargo.toml`, so the bindings and the features cannot drift apart.
+# `vtk-wrap-sys/Cargo.toml`, so the bindings and the features cannot drift apart.
 # Override with MODULES (comma separated, VTK spelling):
 #
 #   MODULES=vtkCommonCore,vtkFiltersSources ./scripts/regenerate.sh
@@ -21,7 +21,7 @@
 #   VTK_INCLUDE    VTK include dir; derived from VTK_DIR when unset.
 #   WRAPVTK_DIR    WrapVTK checkout to use or create (default:
 #                  target/wrapvtk/WrapVTK).
-#   MODULES        Modules to wrap (default: the rvtk-sys features).
+#   MODULES        Modules to wrap (default: the vtk-wrap-sys features).
 
 set -euo pipefail
 
@@ -35,7 +35,7 @@ args=(--repo "$REPO_ROOT")
 [[ -n "${WRAPVTK_DIR:-}" ]] && args+=(--wrapvtk-dir "$WRAPVTK_DIR")
 [[ -n "${WRAPVTK_URL:-}" ]] && args+=(--wrapvtk-url "$WRAPVTK_URL")
 
-cargo run --release -p rvtk-gen -- "${args[@]}"
+cargo run --release -p vtk-wrap-gen -- "${args[@]}"
 
 echo
-echo "Done. Rebuild with: cargo build -p rvtk-sys -p rvtk"
+echo "Done. Rebuild with: cargo build -p vtk-wrap-sys -p vtk-wrap"

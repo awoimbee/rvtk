@@ -190,14 +190,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "rvtk"
+name = "vtk-wrap"
 version = "0.1.0"
 dependencies = [
- "rvtk-sys",
+ "vtk-wrap-sys",
 ]
 
 [[package]]
-name = "rvtk-gen"
+name = "vtk-wrap-gen"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -207,7 +207,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rvtk-sys"
+name = "vtk-wrap-sys"
 version = "0.1.0"
 dependencies = [
  "cmake",

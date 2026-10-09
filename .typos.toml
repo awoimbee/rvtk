@@ -5,21 +5,21 @@
 # makes it a good fit for hand-written code and a bad fit for the generated
 # bindings: those embed VTK's doxygen comments and thousands of upstream
 # identifiers verbatim, and are rewritten from scratch on every regeneration.
-# Everything under `[files] extend-exclude` is emitted by `rvtk-gen`.
+# Everything under `[files] extend-exclude` is emitted by `vtk-wrap-gen`.
 
 [files]
 extend-exclude = [
   # Generated C++ shim and its CMake source list.
-  "rvtk-sys/shim/CMakeLists.txt",
-  "rvtk-sys/shim/src/",
+  "vtk-wrap-sys/shim/CMakeLists.txt",
+  "vtk-wrap-sys/shim/src/",
   # Generated FFI declarations, safe wrappers and smoke test (one file per
   # VTK module, plus the include-list index next to each group).
-  "rvtk-sys/src/generated.rs",
-  "rvtk-sys/src/generated/",
-  "rvtk/src/generated.rs",
-  "rvtk/src/generated/",
-  "rvtk/tests/smoke.rs",
-  "rvtk/tests/smoke/",
+  "vtk-wrap-sys/src/generated.rs",
+  "vtk-wrap-sys/src/generated/",
+  "vtk-wrap/src/generated.rs",
+  "vtk-wrap/src/generated/",
+  "vtk-wrap/tests/smoke.rs",
+  "vtk-wrap/tests/smoke/",
   # `Cargo.lock` is generated and full of upstream crate names.
   "Cargo.lock",
 ]

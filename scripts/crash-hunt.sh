@@ -5,13 +5,13 @@
 #   ./scripts/crash-hunt.sh [output-file]
 #
 # The smoke test prints the name of each check before running it and honours
-# the RVTK_SKIP environment variable.  This script runs it repeatedly: whenever
+# the VTK_WRAP_SKIP environment variable.  This script runs it repeatedly: whenever
 # the process dies it records the last check that was printed, adds it to the
 # skip list and starts again.  The result is the complete list of crashing
 # calls, each of which is then reproduced in plain C++ to decide whether the
-# fault is in rvtk or in VTK itself.
+# fault is in vtk-wrap or in VTK itself.
 #
-# Requires `cargo build -p rvtk --test smoke` to have been run first.
+# Requires `cargo build -p vtk-wrap --test smoke` to have been run first.
 
 set -uo pipefail
 
@@ -22,14 +22,14 @@ MAX_ROUNDS="${MAX_ROUNDS:-2000}"
 
 BIN="$(find "$REPO_ROOT/target/debug/deps" -maxdepth 1 -type f -perm +111 -name 'smoke-*' | head -1)"
 if [[ -z "$BIN" ]]; then
-  echo "error: build the smoke test first: cargo build -p rvtk --test smoke" >&2
+  echo "error: build the smoke test first: cargo build -p vtk-wrap --test smoke" >&2
   exit 1
 fi
 
 : > "$OUT"
 SKIP=""
 for ((round = 1; round <= MAX_ROUNDS; round++)); do
-  RVTK_SKIP="$SKIP" "$BIN" >"$LOG" 2>&1
+  VTK_WRAP_SKIP="$SKIP" "$BIN" >"$LOG" 2>&1
   status=$?
   if [[ $status -eq 0 ]]; then
     echo "clean after $round runs; $(wc -l < "$OUT" | tr -d ' ') crashing calls recorded in $OUT"

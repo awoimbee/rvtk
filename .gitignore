@@ -1,16 +1,16 @@
 /target
 **/*.rs.bk
 .DS_Store
-# Build directories produced by rvtk-gen (the committed output lives in the
+# Build directories produced by vtk-wrap-gen (the committed output lives in the
 # crate source trees, these are just scratch/build dirs).
-/rvtk-sys/shim/build
+/vtk-wrap-sys/shim/build
 
 # Local VTK scratch: source tree, build trees and prebuilt installs kept for
-# offline/`RVTK_VTK_SOURCE_DIR`/`RVTK_VTK_PREBUILT_DIR` experiments.
+# offline/`VTK_WRAP_VTK_SOURCE_DIR`/`VTK_WRAP_VTK_PREBUILT_DIR` experiments.
 /.deps/
-# Output directory of the rendering test (it writes PNGs under rvtk/target).
-/rvtk/target/
+# Output directory of the rendering test (it writes PNGs under vtk-wrap/target).
+/vtk-wrap/target/
 
-# VTK + shim build cache when RVTK_CACHE_DIR points inside the checkout, as the
+# VTK + shim build cache when VTK_WRAP_CACHE_DIR points inside the checkout, as the
 # CI workflow does.
-/.rvtk-cache/
+/.vtk-wrap-cache/

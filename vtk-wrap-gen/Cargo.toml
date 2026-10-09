@@ -1,0 +1,17 @@
+[package]
+name = "vtk-wrap-gen"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Code generator that turns VTK's WrapVTK XML API description into Rust/C++ bindings"
+
+[[bin]]
+name = "vtk-wrap-gen"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+convert_case = "0.12"
+roxmltree = "0.21"
