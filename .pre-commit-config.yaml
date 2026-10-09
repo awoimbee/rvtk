@@ -1,4 +1,4 @@
-# pre-commit hooks for rvtk.
+# pre-commit hooks for vtk-wrap.
 #
 # Run by `prek` (https://github.com/j178/prek), a Rust reimplementation of
 # pre-commit that reads this same file:
@@ -6,9 +6,9 @@
 #   prek install          # wire up the git hooks
 #   prek run --all-files  # run everything over the whole tree
 #
-# The generated code (`rvtk/src/generated*/`, `rvtk-sys/src/generated*/`,
-# `rvtk/tests/smoke*`, `rvtk-sys/shim/`) is not formatted or spell-checked: it
-# is emitted by `rvtk-gen` and reproduced verbatim on every regeneration, so
+# The generated code (`vtk-wrap/src/generated*/`, `vtk-wrap-sys/src/generated*/`,
+# `vtk-wrap/tests/smoke*`, `vtk-wrap-sys/shim/`) is not formatted or spell-checked: it
+# is emitted by `vtk-wrap-gen` and reproduced verbatim on every regeneration, so
 # touching it would only create churn.  See each hook below for how it is kept
 # out of the way.
 repos:

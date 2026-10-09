@@ -15,10 +15,10 @@
 # today; the Linux and Windows jobs run the exact same steps but are marked
 # `continue-on-error` so they report status without blocking PRs.  Drop the
 # `blocking: false` entries once the bindings are made platform-independent
-# (`rvtk-gen` needs a per-platform module list / type mapping, see the README).
+# (`vtk-wrap-gen` needs a per-platform module list / type mapping, see the README).
 #
 # Building VTK from source dominates the runtime (~8 minutes on a fast machine,
-# more on a hosted runner).  The `RVTK_CACHE_DIR` cache keeps the built VTK and
+# more on a hosted runner).  The `VTK_WRAP_CACHE_DIR` cache keeps the built VTK and
 # shim between runs, so only the first run on each OS pays for it.
 name: CI
 
@@ -37,7 +37,7 @@ env:
   CARGO_TERM_COLOR: always
   # Keep the (large) VTK + shim build tree outside `target/` so the Rust and
   # native caches are independent.
-  RVTK_CACHE_DIR: ${{ github.workspace }}/.rvtk-cache
+  VTK_WRAP_CACHE_DIR: ${{ github.workspace }}/.vtk-wrap-cache
 
 # Nothing here needs to write to the repository, so ask for the minimum.
 # zizmor's `excessive-permissions` audit checks for this.
@@ -136,13 +136,13 @@ jobs:
       - name: Cache VTK and shim
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: ${{ env.RVTK_CACHE_DIR }}
-          key: rvtk-vtk-${{ runner.os }}-${{ hashFiles('rvtk-sys/build.rs', 'rvtk-sys/shim/**') }}
+          path: ${{ env.VTK_WRAP_CACHE_DIR }}
+          key: vtk-wrap-vtk-${{ runner.os }}-${{ hashFiles('vtk-wrap-sys/build.rs', 'vtk-wrap-sys/shim/**') }}
           restore-keys: |
-            rvtk-vtk-${{ runner.os }}-
+            vtk-wrap-vtk-${{ runner.os }}-
 
-      # Builds: rvtk-gen, rvtk-sys (downloads + builds VTK, builds the shim),
-      # rvtk, and all test targets.
+      # Builds: vtk-wrap-gen, vtk-wrap-sys (downloads + builds VTK, builds the shim),
+      # vtk-wrap, and all test targets.
       - name: Build workspace and tests
         run: cargo build --workspace --tests --locked
 
@@ -151,5 +151,5 @@ jobs:
       # walks into a known VTK segfault (see `scripts/crash-hunt.sh`).
       - name: Run fast tests
         run: |
-          cargo test -p rvtk-gen --locked
-          cargo test -p rvtk --test pipeline --locked
+          cargo test -p vtk-wrap-gen --locked
+          cargo test -p vtk-wrap --test pipeline --locked

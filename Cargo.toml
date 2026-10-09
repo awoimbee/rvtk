@@ -1,22 +1,22 @@
 [workspace]
 resolver = "2"
 members = [
-    "rvtk-gen",
-    "rvtk-sys",
-    "rvtk",
+    "vtk-wrap-gen",
+    "vtk-wrap-sys",
+    "vtk-wrap",
 ]
 
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
 license = "BSD-3-Clause"
-repository = "https://github.com/awoimbee/rvtk"
-authors = ["rvtk contributors"]
+repository = "https://github.com/awoimbee/vtk-wrap"
+authors = ["vtk-wrap contributors"]
 
 [workspace.dependencies]
-# `rvtk-sys` is an implementation detail of `rvtk`; pin it exactly so the two
+# `vtk-wrap-sys` is an implementation detail of `vtk-wrap`; pin it exactly so the two
 # always travel together while the ABI is unstable.
-rvtk-sys = { path = "rvtk-sys", version = "=0.1.0" }
+vtk-wrap-sys = { path = "vtk-wrap-sys", version = "=0.1.0" }
 
 [profile.dev]
 debug = 1
