@@ -1,20 +1,22 @@
 # vtk-wrap — Rust bindings for VTK
 
-Safe-ish, thin, automatically generated Rust bindings for the
-[Visualization Toolkit (VTK)](https://vtk.org/).
+Thin, automatically generated Rust wrappers for the native C++
+[Visualization Toolkit (VTK)](https://vtk.org/). The API mirrors VTK rather
+than providing a higher-level interface.
 
-The bindings are generated from VTK's own wrapping metadata, so the wrapped API
-tracks the installed VTK version instead of having to be written by hand.  The
-generated surface is deliberately low level: it mirrors VTK rather than hiding
-it.  Higher level, `pyvista`-style helpers belong in a separate crate.
+The committed bindings target **VTK 9.7.1** and cover **1,582 classes and
+~35,600 methods**. Modules are enabled through Cargo features.
 
-* License: [BSD-3-Clause](LICENSE), the same license as VTK itself.
-* Wrapped today: the `Common*` modules plus `FiltersCore`, `FiltersSources`,
-  `FiltersGeneral`, `FiltersGeometry`, `IOGeometry`, `IOCore`, `IOLegacy`,
-  `IOPLY` and `ImagingHybrid` — **1582 classes and ~35 600 methods**.
-* The module list is configurable, and a VTK module is only built if its Cargo
-  feature is enabled; see [Feature flags](#feature-flags) and
-  [Regenerating the bindings](#regenerating-the-bindings).
+## Quick start
+
+From a checkout:
+
+```sh
+cargo build -p vtk-wrap
+cargo run -p vtk-wrap --example sphere_source --features vtkFiltersSources
+```
+
+With the `vtkFiltersSources` feature enabled:
 
 ```rust
 use vtk_wrap::vtkSphereSource;
@@ -29,376 +31,124 @@ let points = polydata.get_points().expect("points");
 println!("{} points", points.get_number_of_points());
 ```
 
-## Requirements
+## Requirements and building
 
-* A C++ compiler and CMake (`cmake` ≥ 3.12).
-* Network access the first time (to download the pinned VTK source release), or a
-  VTK source tree pointed at by `VTK_WRAP_VTK_SOURCE_DIR`.
-* No installed VTK is used: `vtk-wrap-sys` builds the pinned VTK release from source
-  and links it statically (see [Building](#building)).
+- Rust/Cargo, a C++ compiler, and CMake ≥ 3.12.
+- Network access on the first build, unless you supply VTK sources or a
+  prebuilt installation.
+- The committed bindings were generated on macOS; Linux and Windows have
+  known native-build limitations.
 
-## Workspace layout
+By default, `vtk-wrap-sys` downloads the pinned VTK release and builds VTK
+and the C++ shim statically. No system VTK installation is required.
+Cold builds take several minutes; subsequent builds reuse the native cache.
 
-| Crate | Lib name | Purpose |
-| ----- | -------- | ------- |
-| `vtk-wrap` | `vtk_wrap` | Safe wrappers: one `#[repr(transparent)]` newtype per class, reference counting, inheritance via `Deref`. |
-| `vtk-wrap-sys` | `vtk_wrap_sys` | Raw `extern "C"` declarations (`vtk_wrap_sys::ffi`) and the CMake project that builds the C++ shim. |
-| `vtk-wrap-gen` | — | The code generator.  Clones/builds WrapVTK, generates the XML API description, and emits the C++ shim, the FFI crate and the wrapper crate. |
+See [Native builds](docs/building.md) for the build pipeline and platform
+limitations.
 
-The package is named `vtk-wrap`; Rust imports use `vtk_wrap`, as in
-`use vtk_wrap::vtkSphereSource;`.
+## Feature flags
 
-```
-VTK headers
-   │  vtkWrapXML  (WrapVTK)
-   ▼
-per-class XML ──► vtk-wrap-gen ──┬─► vtk-wrap-sys/shim/**.cpp  ──► libvtk_wrap_shim.a
-                               ├─► vtk-wrap-sys/src/generated.rs
-                               └─► vtk-wrap/src/generated.rs
-```
+Each wrapped VTK module has a Cargo feature with the same name. Features
+select both the native libraries to build and the Rust bindings to expose;
+module dependencies are enabled automatically.
 
-## Building
+| Default feature | Purpose |
+| --- | --- |
+| `vtkCommonCore` | Object model |
+| `vtkCommonDataModel` | Datasets |
+| `vtkFiltersCore` | Core pipeline filters |
 
-```sh
-cargo build -p vtk-wrap-sys -p vtk-wrap
-cargo test  -p vtk-wrap
-cargo run   -p vtk-wrap --example sphere_source --features vtkFiltersSources
-```
-
-`vtk-wrap-sys/build.rs` builds VTK from source, statically, then configures
-`vtk-wrap-sys/shim` against it with CMake and links the resulting `libvtk_wrap_shim.a`
-into the crate.  The shim is a thin `extern "C"` layer: every function casts the
-opaque receiver back to its concrete type and performs the call, so the code the
-C++ compiler sees is essentially identical to hand written code.
-
-### How VTK is built
-
-The first build is expensive; everything after it is incremental.
-
-1. The pinned VTK release (see `VTK_VERSION` in `vtk-wrap-sys/build.rs`, currently
-   9.7.1) is downloaded from `vtk.org` and checked against a SHA-256, then
-   unpacked into `target/vtk-wrap-vtk/vtk-<version>/`.
-2. VTK is configured with `BUILD_SHARED_LIBS=OFF` and the components in
-   `vtk-wrap-sys/shim/CMakeLists.txt`, then built and installed into
-   `target/vtk-wrap-vtk/vtk-<version>/build/`.  A stamp file records the exact
-   options, so a cached VTK is reused until they change.
-3. The shim and a throw-away `vtk_wrap_link_probe` executable are built against that
-   static VTK.  `build.rs` reads the probe's CMake link line and turns it into
-   `cargo:rustc-link-lib` directives, which is how the dozens of static VTK
-   archives, system libraries and frameworks reach the Rust linker.  The shim's
-   CMake build tree lives in `target/vtk-wrap-vtk/vtk-<version>/shim/` (not in
-   Cargo's per-run `OUT_DIR`), keyed by the VTK build, target, generator and a
-   content hash of `vtk-wrap-sys/shim`.  An unchanged shim therefore costs a no-op
-   instead of recompiling ~1500 translation units when the build script re-runs
-   (for example after a profile change).
-
-Both the shim and VTK are static, so a built binary has no VTK shared library
-dependency at all.  Delete `target/vtk-wrap-vtk/` to force a rebuild of VTK.
-
-### Feature flags
-
-VTK is a collection of ~160 static libraries, and building all of them is most
-of the build time.  Every wrapped module is therefore a Cargo feature named
-after it, and **only the enabled modules are compiled**: `vtk-wrap-sys/build.rs`
-passes the enabled list to CMake, which builds just those VTK libraries and
-just those shim translation units.
-
-The default is deliberately small:
-
-| Default features | Pulls in |
-| ---------------- | -------- |
-| `vtkCommonCore` | the object model |
-| `vtkCommonDataModel` | datasets |
-| `vtkFiltersCore` | the core pipeline filters |
-
-Enabling a feature also enables the modules it depends on, so the closure of
-the three defaults is `vtkCommonCore`, `vtkCommonDataModel`,
-`vtkCommonExecutionModel`, `vtkCommonMath`, `vtkCommonMisc`, `vtkCommonSystem`,
-`vtkCommonTransforms` and `vtkFiltersCore` — eight VTK libraries instead of the
-~160 a full VTK builds.  Ask for more by name:
+Enable additional modules as needed:
 
 ```sh
 cargo build -p vtk-wrap --features vtkFiltersSources,vtkRenderingCore
 ```
 
-The features select both the VTK libraries that are built *and* the generated
-bindings that exist.  The generated code is split into one file per module
-(`vtk-wrap/src/generated/<module>.rs`, and likewise for `vtk-wrap-sys` and the smoke
-test); each file is `include!`d only when its feature is on, so a disabled
-module is never even parsed.
+The full feature list is in [`vtk-wrap/Cargo.toml`](vtk-wrap/Cargo.toml).
 
-> A `#[cfg(feature = "…")]` on every generated item would be far simpler, but
-> rustc's cost is super-linear in the number of gated items: ~9300 attributes
-> pushed a `cargo check -p vtk-wrap` from ~2 s past 150 s.  File-level gating keeps
-> it at ~2 s.
+## Build cache and overrides
 
-#### Build times
+The default cache is `target/vtk-wrap-vtk/`. Remove it to force a native
+rebuild, or set `VTK_WRAP_CACHE_DIR` to share a cache across checkouts.
 
-Measured on an 18-core Apple Silicon machine, `cargo build -p vtk-wrap --tests`:
+| Environment variable | Purpose |
+| --- | --- |
+| `VTK_WRAP_CACHE_DIR` | Relocate the VTK and shim cache. |
+| `VTK_WRAP_VTK_SOURCE_DIR` | Build from a local VTK source tree instead of downloading. |
+| `VTK_WRAP_VTK_PREBUILT_DIR` | Use an existing VTK install prefix instead of building VTK. |
+| `VTK_WRAP_VTK_URL` | Override the download URL for the pinned release archive. |
+| `DOCS_RS` | Skip native compilation for documentation builds. |
 
-| Scenario | Time |
-| -------- | ---- |
-| Cold (`cargo clean`): download + VTK + shim + Rust | **~11 min** |
-| …of which VTK | ~8 min |
-| …of which the shim | ~1 min 45 s |
-| …of which Rust (crate + tests) | ~30 s |
-| Warm, `--tests` | ~6 s |
-| Warm, one VTK-independent test rebuilt | ~2 s |
-
-The VTK build dominates and only happens once per VTK version, options and
-machine.  Reusing it across checkouts or CI jobs is the point of the two cache
-variables below.
-
-#### Skipping the VTK build
-
-When VTK has already been built somewhere (a CI cache, a tarball, another
-checkout), point `VTK_WRAP_VTK_PREBUILT_DIR` at the install prefix and the download
-and VTK build are skipped entirely:
+A prebuilt installation must match the pinned VTK version and contain the
+enabled modules. To retain static linking, build it with
+`BUILD_SHARED_LIBS=OFF` and `CMAKE_POSITION_INDEPENDENT_CODE=ON`.
 
 ```sh
-# A prefix produced by a previous run lives at:
-#   target/vtk-wrap-vtk/vtk-9.7.1/build/
-VTK_WRAP_VTK_PREBUILT_DIR=/path/to/vtk-9.7.1-install cargo build -p vtk-wrap-sys
-# -> ~1 min 30 s instead of ~11 min
+VTK_WRAP_VTK_PREBUILT_DIR=/path/to/vtk-install cargo build -p vtk-wrap-sys
 ```
 
-The prefix is validated to be exactly VTK 9.7.1 (a mismatched tree is an error,
-not a silent mismatch with the generated bindings).  To keep the static
-guarantee the prefix must be a *static* VTK build (`BUILD_SHARED_LIBS=OFF`,
-`CMAKE_POSITION_INDEPENDENT_CODE=ON`); a shared build also links, on platforms
-where the dylibs are found at run time.  `VTK_WRAP_CACHE_DIR` relocates the
-`vtk-<version>/{build,shim}` cache so several checkouts can share one copy.
+## Workspace
 
-### Why the smoke test is split into `section_*` functions
+| Package | Rust library / executable | Purpose |
+| --- | --- | --- |
+| `vtk-wrap` | `vtk_wrap` | Rust wrappers |
+| `vtk-wrap-sys` | `vtk_wrap_sys` | Raw FFI and native shim |
+| `vtk-wrap-gen` | `vtk-wrap-gen` | Binding generator |
 
-The generated `vtk-wrap/tests/smoke.rs` calls every wrapped method (~12k checks).
-Emitting those checks into a single `main` made rustc's type checking
-super-linear: the front-end alone took minutes on one core.  `vtk-wrap-gen` now
-emits them into numbered `section_*` functions (called in order from `main`),
-which brings a clean build of the test back to well under a minute and lets
-codegen parallelise.  The `VTK_WRAP_SKIP` crash-hunting hook is unaffected.
+## API behavior and limitations
 
-| Variable | Effect |
-| -------- | ------ |
-| `VTK_WRAP_VTK_SOURCE_DIR` | Use this VTK source tree instead of downloading one (still built here, still static). |
-| `VTK_WRAP_VTK_PREBUILT_DIR` | Use this already installed VTK and skip the download + build (must be 9.7.1; static to keep the static guarantee). |
-| `VTK_WRAP_CACHE_DIR` | Put the VTK + shim cache here instead of `target/vtk-wrap-vtk/`, so checkouts/CI jobs can share it. |
-| `VTK_WRAP_VTK_URL` | Download from this URL instead of the pinned release. |
-| `DOCS_RS` | Set by docs.rs; skips the native build entirely. |
+- `Clone` retains a VTK reference; `Drop` releases it. Returned objects take
+  an extra reference, which can leak when a native method transfers ownership.
+- Base-class methods are available through `Deref`. Overloads use suffixes
+  such as `_v2`; generated docs include aliases for the original C++ names.
+- Wrappers do not enforce all VTK preconditions. Invalid API usage can cause
+  native crashes even when the calling Rust code contains no `unsafe`.
+- Value types such as `vtkVector` and `vtkVariant`, most templates,
+  reference output parameters, multi-dimensional arrays, and callbacks are
+  not supported. Unsupported methods are omitted.
 
-### Platform support and CI
+See [Binding design](docs/design.md) for ownership, inheritance, and type
+mapping details.
 
-`.github/workflows/ci.yml` builds the whole workspace (native VTK + shim + Rust)
-and runs the fast tests on Linux, macOS and Windows for every pull request.
+## Development
 
-The committed bindings were generated from a **macOS** VTK, so today only the
-macOS job can pass:
-
-* they wrap classes that only exist there (the generated shim `#include`s
-  `vtkCocoaRenderWindow.h`, `vtkCocoaHardwareWindow.h` and
-  `vtkCocoaRenderWindowInteractor.h`, which no other platform installs);
-* the generated C++ spells 64-bit ids `int64_t`, which is the same type as
-  `vtkIdType` on macOS (`long long`) but not on Linux/Windows (`long` vs
-  `long long`), so a handful of array parameters fail to compile;
-* on Windows the default Visual Studio generator writes no `link.txt`, which
-  `build.rs` reads to reconstruct the link line.
-
-Because of that the Linux and Windows jobs are marked `continue-on-error`:
-they run the same steps and report their status without blocking a PR.  Making
-them blocking means generating the bindings per platform — a per-platform
-module list (to drop the Cocoa classes) and a type-faithful mapping between
-`vtkIdType`/`vtkTypeInt64` and the C ABI — which is the next step if
-cross-platform support is wanted.
-
-### Pre-commit hooks
-
-`.pre-commit-config.yaml` runs three checks, via [prek](https://github.com/j178/prek)
-(a Rust implementation of pre-commit that reads the same file):
-
-| Hook | Checks |
-| ---- | ------ |
-| `cargo fmt` | Formatting, across the workspace. |
-| [`typos`](https://github.com/crate-ci/typos) | Spelling, in identifiers and comments. |
-| [`zizmor`](https://github.com/zizmorcore/zizmor) | The GitHub Actions workflow. |
+Install and run the formatting, spelling, and workflow checks with
+[prek](https://github.com/j178/prek):
 
 ```sh
-prek install          # once, to wire up the git hook
-prek run --all-files  # everything, over the whole tree
-prek run              # just the staged files
+prek install
+prek run --all-files
+cargo test -p vtk-wrap-gen
+cargo test -p vtk-wrap --test pipeline --features vtkFiltersSources
 ```
 
-The same three hooks run in CI as the `lint` job (`.github/workflows/ci.yml`),
-which needs no VTK and finishes in well under a minute, so it gates the
-multi-minute native build rather than running alongside it.  `cargo fmt` is a
-check there, not a fix: a pre-commit hook that reformats a file counts as a
-failure, so an unformatted PR is rejected.
+The generated smoke test is a crash-hunting suite with known native crashes;
+it is not part of the fast test commands above.
 
-Generated code is deliberately out of scope for formatting and spelling: it is
-rewritten from scratch by `vtk-wrap-gen` on regeneration, so touching it would only
-create churn.  `.typos.toml` excludes those paths, and the `cargo fmt` hook
-formats from the crate roots rather than passing filenames — rustfmt follows
-`mod x;` but not `include!`, and every generated file is reached through
-`include!`, so a workspace-wide `cargo fmt` leaves all ~470k generated lines
-alone.
+### Regenerating bindings
 
-### Dependency updates
-
-Dependabot (`.github/dependabot.yml`) opens a weekly PR for the Cargo
-dependencies and for the GitHub Actions.  Both are grouped, so a quiet week is
-one PR per ecosystem, and both wait a week before adopting a release.  The
-actions are pinned to commit SHAs, and Dependabot keeps those in step.
-
-VTK is not tracked: it is pinned by version and SHA-256 in `vtk-wrap-sys/build.rs`
-and bumped deliberately, because the committed bindings are generated from that
-exact release.
-
-## Design
-
-### Reference counting
-
-VTK objects are reference counted.  Each Rust wrapper owns one reference
-(`New()` gives the first one):
-
-* `Clone` calls `Register()` and duplicates the handle;
-* `Drop` calls `Delete()`;
-* `as_ptr()` exposes the raw pointer for advanced use.
-
-Method results that return objects are wrapped with `from_borrowed`, which takes
-an extra reference, so they are safe even when the callee keeps ownership.  A
-side effect is that methods that *transfer* ownership (factory-style getters)
-can leak one reference; correctness is never compromised, only reference counts
-can stay above zero.
-
-### Inheritance
-
-Rust has no inheritance, so each wrapper implements `Deref` to its nearest
-wrapped base class.  Because all wrappers are `#[repr(transparent)]` over the
-same pointer type, upcasting is a pointer cast, and base class methods are
-reachable directly through method resolution:
-
-```rust
-sphere.update();          // vtkAlgorithm::Update
-sphere.get_output();      // vtkPolyDataAlgorithm::GetOutput
-sphere.get_class_name();  // vtkObjectBase::GetClassName
-```
-
-### Overloads
-
-C++ overloading is resolved by name mangling at generation time.  The overload
-with the *fewest* parameters keeps the plain snake_case name, and the others get
-a `_v2`, `_v3`, … suffix; ties are broken in favour of VTK's canonical scalar
-types (`double` over `float`, scalars over fixed size arrays):
-
-```rust
-sphere.update();          // Update()
-sphere.update_v2(0);      // Update(int port)
-```
-
-Every method also gets a `#[doc(alias = "CxxName")]`, so searching the generated
-documentation by the original VTK name still finds it.
-
-### Type mapping
-
-| C++ | Rust |
-| --- | ---- |
-| `int`, `double`, … | `i32`, `f64`, … |
-| `long` / `unsigned long` | `i64` / `u64` (through `c_long`/`c_ulong`) |
-| `vtkIdType` | `i64` |
-| `bool` | `bool` |
-| `const char *` | `&str` (parameter), `String` (result) |
-| `std::string` | `&str` (parameter), `String` (result) |
-| `T *GetX()` where `T : vtkObjectBase` | `Option<T>` |
-| `const double x[3]` | `[f64; 3]` |
-| `double x[]` | `&[f64]` |
-
-Anything that cannot be represented across a stable C ABI (multi-dimensional
-arrays, raw out-parameters, function pointers, templates, `ostream`, …) is
-skipped for that method; the generator reports how many methods it skipped.
-
-## Regenerating the bindings
-
-The generated sources are committed so that users do not need the wrapping tools.
-`vtk-wrap-gen` owns the whole pipeline: it clones (or reuses) [WrapVTK], builds its
-`vtkWrapXML` tool against VTK, generates the XML API description, and writes the
-C++ shim and the Rust crates.
+Generated sources are committed; users do not need the wrapping tools.
+To regenerate, first build the pinned VTK with its wrapping tools, then run:
 
 ```sh
+cargo build -p vtk-wrap-sys
 ./scripts/regenerate.sh
-# or pick modules explicitly (comma separated, VTK spelling):
-MODULES=vtkCommonCore,vtkFiltersSources,vtkRenderingCore ./scripts/regenerate.sh
 ```
 
-Equivalently, without the wrapper script:
+See [Regenerating bindings](docs/generating.md) for custom VTK installations
+and module selection. List generator options with
+`cargo run -p vtk-wrap-gen -- --help`.
 
-```sh
-cargo run -p vtk-wrap-gen -- --repo .
-```
+## Related projects and acknowledgements
 
-### It uses the pinned VTK, not the system one
+[vtk-pure-rs](https://github.com/henriksson-lab/vtk-pure-rs) reimplements VTK
+in Rust rather than wrapping the C++ library. It does not require a C++
+toolchain or native VTK.
 
-The bindings are generated from a *pinned* VTK release: the same 9.7.1 that
-`vtk-wrap-sys` downloads and builds (`VTK_VERSION` in `vtk-wrap-sys/build.rs`).  On a
-cold cache, build that once first:
+This project uses [VTK](https://vtk.org/) and David Gobbi's
+[WrapVTK](https://github.com/dgobbi/WrapVTK). The earlier
+[vtk-rs](https://github.com/jonaspleyer/vtk-rs) project and
+[VTK forum discussion](https://discourse.vtk.org/t/rust-bindings/15700)
+established the WrapVTK-based approach.
 
-```sh
-cargo build -p vtk-wrap-sys     # downloads and builds the pinned VTK
-```
-
-`vtk-wrap-gen` then finds it under `target/vtk-wrap-vtk/vtk-<version>/build` (or
-`$VTK_WRAP_CACHE_DIR`), so regeneration does not depend on any VTK being installed.
-The lookup order is `--vtk-dir`, `VTK_DIR`, the pinned build, then a system
-install.  A VTK without the `WrappingTools` component cannot be used; the pinned
-build always has it.
-
-### The module set comes from the features
-
-The modules to wrap default to the `vtk*` Cargo features declared in
-`vtk-wrap-sys/Cargo.toml`, so the generated XML, the bindings and the features
-cannot drift apart.  `--modules` (or `MODULES=...`) overrides that; passing
-nothing when the manifest has no `vtk*` features wraps everything VTK exposes.
-
-| `vtk-wrap-gen` option | Purpose |
-| ----------------- | ------- |
-| `--xml-dir` | Use pre-generated XML and skip WrapVTK entirely. |
-| `--vtk-dir` | VTK CMake package dir to build `vtkWrapXML` against. |
-| `--vtk-include` | VTK include dir, to detect wrapper-only array shims. |
-| `--wrapvtk-dir` | WrapVTK checkout to use or create (default `target/wrapvtk`). |
-| `--wrapvtk-url` | Git URL to clone WrapVTK from. |
-| `--modules` | Modules to wrap (default: the `vtk-wrap-sys` features). |
-| `--jobs` | Passed to `cmake --build --parallel` for WrapVTK. |
-
-[WrapVTK]: https://github.com/dgobbi/WrapVTK
-
-## Limitations / roadmap
-
-* Value types (`vtkVector`, `vtkIndent`, `vtkVariant`, …) and `std::string`
-  behind a pointer are not yet supported.
-* Templated classes are skipped; `vtkSmartPointer<T>` signatures are supported
-  by including the referenced header.
-* Output parameters passed by reference (`T &`) and multi-dimensional arrays are
-  skipped.
-* Callback / observer support (`AddObserver`) is not wrapped yet.
-* Some VTK APIs require the caller to set things up first.  For example
-  `vtkPolyData::InsertNextCell` needs the target `vtkCellArray` to exist
-  (`vtkPolyData::SetPolys`, as in VTK's own documentation); the binding is a
-  faithful `unsafe`-free wrapper of the C++ contract, not a guard rail.
-* A `pyvista`-style high level crate would be a good next step.
-
-## Related projects
-
-* [vtk-pure-rs](https://github.com/henriksson-lab/vtk-pure-rs) takes the
-  opposite approach to this crate.  Instead of binding VTK it is a ground-up
-  Rust reimplementation of VTK 9.6 (an LLM-mediated translation of the C++
-  source), with no C++ toolchain and no system VTK involved.  It is
-  experimental and, by its own benchmarks, currently slower than the C++
-  original; in exchange it builds anywhere Cargo does, including to
-  WebAssembly, which is exactly what an FFI binding like this one cannot do.
-
-## Acknowledgements
-
-* [VTK](https://vtk.org/) and its wrapping tools.
-* [WrapVTK](https://github.com/dgobbi/WrapVTK) by David Gobbi, which produces the
-  XML API description used here.
-* The earlier [vtk-rs](https://github.com/jonaspleyer/vtk-rs) project and the
-  [VTK forum discussion](https://discourse.vtk.org/t/rust-bindings/15700), which
-  established the WrapVTK-based approach.
+Licensed under [BSD-3-Clause](LICENSE), the same license as VTK.
