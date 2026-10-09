@@ -1,5 +1,5 @@
 //! Rust binding generation: the raw `extern "C"` declarations for `vtk-wrap-sys` and
-//! the safe wrappers for the `vtk` crate.
+//! the safe wrappers for the `vtk-wrap` crate.
 
 use std::fmt::Write as _;
 
